@@ -1,0 +1,377 @@
+<title>helloo Platform Thesis</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;1,6..72,400;1,6..72,500&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap">
+
+<style>
+  :root {
+    --paper: #F4F6F3;
+    --card: #FFFFFF;
+    --card-2: #FBFCFA;
+    --ink: #13211C;
+    --ink-soft: #45554E;
+    --muted: #6E7C75;
+    --line: #DCE3DE;
+    --line-strong: #C6D0CA;
+    --accent: #0E7A68;
+    --accent-strong: #0A5B4D;
+    --accent-wash: #E4EFEB;
+    --signal: #BC5734;
+    --signal-wash: #F3E4DD;
+    --amber: #9C6A18;
+    --danger: #9E3838;
+    --shadow: 0 1px 2px rgba(19,33,28,.05), 0 12px 32px -18px rgba(19,33,28,.22);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --paper: #0E1714;
+      --card: #14201C;
+      --card-2: #172420;
+      --ink: #EAF0EC;
+      --ink-soft: #B4C4BC;
+      --muted: #7E9089;
+      --line: #21302A;
+      --line-strong: #2C3E37;
+      --accent: #3AC7AD;
+      --accent-strong: #5CDAC2;
+      --accent-wash: #16261F;
+      --signal: #E08A63;
+      --signal-wash: #26201C;
+      --amber: #D6A24B;
+      --danger: #E48181;
+      --shadow: 0 1px 2px rgba(0,0,0,.3), 0 18px 40px -20px rgba(0,0,0,.6);
+    }
+  }
+  :root[data-theme="dark"] {
+    --paper: #0E1714;
+    --card: #14201C;
+    --card-2: #172420;
+    --ink: #EAF0EC;
+    --ink-soft: #B4C4BC;
+    --muted: #7E9089;
+    --line: #21302A;
+    --line-strong: #2C3E37;
+    --accent: #3AC7AD;
+    --accent-strong: #5CDAC2;
+    --accent-wash: #16261F;
+    --signal: #E08A63;
+    --signal-wash: #26201C;
+    --amber: #D6A24B;
+    --danger: #E48181;
+    --shadow: 0 1px 2px rgba(0,0,0,.3), 0 18px 40px -20px rgba(0,0,0,.6);
+  }
+
+  * { box-sizing: border-box; }
+  html { -webkit-text-size-adjust: 100%; }
+  body {
+    margin: 0;
+    background: var(--paper);
+    color: var(--ink);
+    font-family: "IBM Plex Sans", system-ui, sans-serif;
+    font-size: 17px;
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+  }
+  .wrap { max-width: 800px; margin: 0 auto; padding: 0 28px; }
+
+  /* ---- type ---- */
+  .serif { font-family: "Newsreader", Georgia, serif; }
+  .mono { font-family: "IBM Plex Mono", ui-monospace, monospace; }
+  .eyebrow {
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 12px; font-weight: 500;
+    letter-spacing: .16em; text-transform: uppercase;
+    color: var(--accent-strong);
+  }
+  h1, h2, h3 { font-family: "Newsreader", Georgia, serif; font-weight: 500; text-wrap: balance; line-height: 1.12; margin: 0; }
+  p { margin: 0 0 1em; }
+  a { color: var(--accent-strong); }
+  strong { font-weight: 600; }
+
+  /* ---- hero ---- */
+  header.hero { padding: 88px 0 56px; }
+  .brand { display: flex; align-items: baseline; gap: 14px; margin-bottom: 40px; }
+  .brand .logo { font-family: "Newsreader", serif; font-weight: 600; font-size: 26px; letter-spacing: -.01em; }
+  .brand .logo b { color: var(--accent); font-weight: 600; }
+  .brand .kicker { font-family: "IBM Plex Mono", monospace; font-size: 11.5px; letter-spacing: .14em; text-transform: uppercase; color: var(--muted); border-left: 1px solid var(--line-strong); padding-left: 14px; }
+  .hero h1 { font-size: clamp(30px, 5.4vw, 50px); letter-spacing: -.015em; }
+  .hero h1 em { font-style: italic; color: var(--accent-strong); }
+  .hero .lede { font-size: 19px; color: var(--ink-soft); max-width: 60ch; margin-top: 22px; }
+
+  /* ---- section scaffold ---- */
+  section { padding: 30px 0; }
+  .sec-head { display: flex; align-items: baseline; gap: 16px; margin-bottom: 22px; }
+  .sec-head .n { font-family: "IBM Plex Mono", monospace; font-size: 12px; color: var(--muted); padding-top: 6px; min-width: 34px; }
+  .sec-head h2 { font-size: clamp(23px, 3.4vw, 30px); letter-spacing: -.01em; }
+  .sec-head .tag { margin-left: auto; }
+
+  /* membrane divider */
+  .membrane { height: 1px; border: 0; margin: 8px 0; background-image: repeating-linear-gradient(90deg, var(--line-strong) 0 7px, transparent 7px 15px); }
+
+  /* ---- callouts ---- */
+  .callout { border: 1px solid var(--line); border-left: 3px solid var(--accent); background: var(--card-2); border-radius: 10px; padding: 18px 20px; margin: 8px 0; }
+  .callout.warn { border-left-color: var(--signal); }
+  .callout .label { font-family: "IBM Plex Mono", monospace; font-size: 11px; letter-spacing: .14em; text-transform: uppercase; color: var(--accent-strong); display: block; margin-bottom: 7px; }
+  .callout.warn .label { color: var(--signal); }
+  .callout p { margin: 0; font-size: 15.5px; color: var(--ink-soft); }
+
+  /* ---- evidence cards ---- */
+  .grid { display: grid; gap: 14px; }
+  .grid.two { grid-template-columns: 1fr 1fr; }
+  .card { border: 1px solid var(--line); background: var(--card); border-radius: 12px; padding: 18px 20px; box-shadow: var(--shadow); }
+  .card h3 { font-size: 18px; margin-bottom: 6px; }
+  .card p { font-size: 14.5px; color: var(--ink-soft); margin: 0; }
+  .card .verdict { font-family: "IBM Plex Mono", monospace; font-size: 11px; letter-spacing: .1em; text-transform: uppercase; color: var(--signal); display: block; margin-top: 10px; }
+  .card .verdict.ok { color: var(--accent-strong); }
+
+  /* ---- wedge centerpiece ---- */
+  .wedge { background: var(--accent-wash); border: 1px solid var(--line); border-radius: 16px; padding: 30px; margin-top: 6px; }
+  .wedge .big { font-family: "Newsreader", serif; font-size: clamp(22px, 3.6vw, 30px); font-weight: 500; letter-spacing: -.01em; line-height: 1.2; margin: 0 0 8px; }
+  .wedge .big u { text-decoration: none; color: var(--accent-strong); border-bottom: 2px solid var(--accent); }
+  .wedge > p { color: var(--ink-soft); font-size: 15.5px; max-width: 62ch; }
+
+  /* split membrane visual */
+  .split { display: grid; grid-template-columns: 1fr auto 1fr; align-items: stretch; gap: 0; margin: 22px 0 4px; border: 1px solid var(--line); border-radius: 12px; overflow: hidden; background: var(--card); }
+  .split .side { padding: 16px 18px; }
+  .split .side h4 { font-family: "IBM Plex Mono", monospace; font-size: 11px; letter-spacing: .14em; text-transform: uppercase; margin: 0 0 8px; color: var(--muted); font-weight: 500; }
+  .split .side ul { margin: 0; padding-left: 16px; font-size: 14px; color: var(--ink-soft); }
+  .split .side li { margin-bottom: 4px; }
+  .split .bar { width: 3px; background-image: repeating-linear-gradient(180deg, var(--accent) 0 6px, transparent 6px 12px); }
+
+  /* mapping table */
+  table { width: 100%; border-collapse: collapse; margin-top: 20px; font-size: 14.5px; }
+  caption { text-align: left; font-family: "IBM Plex Mono", monospace; font-size: 11px; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); margin-bottom: 10px; }
+  th, td { text-align: left; padding: 11px 14px; border-bottom: 1px solid var(--line); vertical-align: top; }
+  thead th { font-family: "IBM Plex Mono", monospace; font-size: 11px; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); font-weight: 500; }
+  tbody td:first-child { color: var(--ink-soft); }
+  tbody td:last-child { color: var(--ink); font-weight: 500; }
+
+  /* ---- architecture stack ---- */
+  .stack { display: flex; flex-direction: column; gap: 8px; }
+  .layer { display: grid; grid-template-columns: 30px 1fr auto; align-items: center; gap: 14px; border: 1px solid var(--line); background: var(--card); border-radius: 10px; padding: 13px 16px; }
+  .layer .idx { font-family: "IBM Plex Mono", monospace; font-size: 12px; color: var(--accent); }
+  .layer .body b { font-weight: 600; }
+  .layer .body span { color: var(--muted); font-size: 14px; }
+  .layer .body { font-size: 15px; }
+  .pill { font-family: "IBM Plex Mono", monospace; font-size: 10.5px; letter-spacing: .08em; text-transform: uppercase; padding: 3px 9px; border-radius: 999px; white-space: nowrap; }
+  .pill.core { background: var(--accent-wash); color: var(--accent-strong); border: 1px solid var(--line-strong); }
+  .pill.prem { background: var(--signal-wash); color: var(--signal); border: 1px solid var(--line-strong); }
+  .pill.moat { background: var(--accent); color: #fff; }
+  :root[data-theme="dark"] .pill.moat { color: #0E1714; }
+  @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .pill.moat { color: #0E1714; } }
+
+  /* ---- roadmap ---- */
+  .phases { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+  .phase { border: 1px solid var(--line); border-top: 3px solid var(--accent); border-radius: 10px; padding: 15px 16px; background: var(--card); }
+  .phase .ph { font-family: "IBM Plex Mono", monospace; font-size: 11px; letter-spacing: .1em; text-transform: uppercase; color: var(--accent-strong); margin-bottom: 8px; }
+  .phase h3 { font-size: 16px; margin-bottom: 6px; }
+  .phase p { font-size: 13px; color: var(--ink-soft); margin: 0; }
+  .phase:nth-child(1) { border-top-color: var(--accent); }
+  .phase:nth-child(4) { border-top-color: var(--line-strong); opacity: .9; }
+
+  /* ---- risk register ---- */
+  .risks { border: 1px solid var(--line); border-radius: 12px; overflow: hidden; }
+  .risk { display: grid; grid-template-columns: 26px 1fr; gap: 12px; padding: 13px 16px; border-bottom: 1px solid var(--line); background: var(--card); }
+  .risk:last-child { border-bottom: 0; }
+  .risk .sev { font-family: "IBM Plex Mono", monospace; font-size: 11px; font-weight: 600; }
+  .risk .sev.hi { color: var(--danger); }
+  .risk .sev.md { color: var(--amber); }
+  .risk .rk b { font-weight: 600; }
+  .risk .rk { font-size: 14.5px; }
+  .risk .rk span { color: var(--muted); font-size: 13.5px; }
+
+  /* ---- pull quote ---- */
+  .pullquote { padding: 44px 0; }
+  .pullquote blockquote { margin: 0; font-family: "Newsreader", serif; font-size: clamp(21px, 3.2vw, 27px); font-weight: 400; line-height: 1.4; letter-spacing: -.01em; color: var(--ink); }
+  .pullquote blockquote b { color: var(--accent-strong); font-weight: 500; }
+
+  footer { border-top: 1px solid var(--line); margin-top: 30px; padding: 26px 0 60px; color: var(--muted); font-size: 13px; }
+  footer .mono { font-size: 12px; }
+
+  .lead-list { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 10px; }
+  .lead-list li { display: flex; gap: 12px; font-size: 15px; color: var(--ink-soft); }
+  .lead-list li::before { content: "→"; color: var(--accent); flex: none; }
+
+  @media (max-width: 640px) {
+    .grid.two, .phases { grid-template-columns: 1fr; }
+    .split { grid-template-columns: 1fr; }
+    .split .bar { height: 3px; width: 100%; background-image: repeating-linear-gradient(90deg, var(--accent) 0 6px, transparent 6px 12px); }
+    .sec-head .tag { display: none; }
+    header.hero { padding: 60px 0 40px; }
+  }
+
+  .fade { opacity: 0; transform: translateY(10px); animation: rise .7s cubic-bezier(.2,.7,.2,1) forwards; }
+  .fade:nth-child(2){ animation-delay:.06s } .fade:nth-child(3){ animation-delay:.12s }
+  @keyframes rise { to { opacity: 1; transform: none; } }
+  @media (prefers-reduced-motion: reduce) { .fade { animation: none; opacity: 1; transform: none; } }
+</style>
+
+<header class="hero">
+  <div class="wrap">
+    <div class="brand fade">
+      <span class="logo">hell<b>oo</b></span>
+      <span class="kicker">Platform Thesis · Aug 2026</span>
+    </div>
+    <h1 class="fade">The personal AI you can trust with <em>root.</em></h1>
+    <p class="lede fade">Infrastructure for personal AIs people <strong>own</strong> — layered memory they control, agents that act across their real accounts <em>safely</em>, reachable from any channel. Open-source core, hosted premium.</p>
+  </div>
+</header>
+
+<div class="wrap">
+
+  <section>
+    <div class="sec-head"><span class="n">01</span><h2 class="serif">The decision</h2></div>
+    <p>Build helloo as <strong>horizontal personal-AI infrastructure</strong> — anyone builds their own personal AI (many agents + a tool/skill registry), reachable from any channel, with Slack-style workspaces (org → users; users in many orgs), layered “membrane” memory, bring-your-own-agent, and an open-core + hosted-premium model in the lineage of Vercel, Supabase, and shadcn.</p>
+    <div class="callout warn">
+      <span class="label">The honest caveat — stated once, then we commit</span>
+      <p>Naive horizontal infra is the hardest, least-defensible path in 2026: memory and interop are commoditizing, and OpenClaw proved you can win enormous adoption and still have no moat, no business, and a security disaster. This plan builds the <em>non-naive</em> version — engineered around the exact walls the field just hit. Hold the line on the trust layer, owned memory, and monetization-from-day-one, or it becomes another starred repo with no business.</p>
+    </div>
+  </section>
+
+  <hr class="membrane">
+
+  <section>
+    <div class="sec-head"><span class="n">02</span><h2 class="serif">What the field just proved</h2><span class="eyebrow tag">the map</span></div>
+    <p>A full research pass — market, big tech, the OSS/infra field, and community + leader discourse — repurposed here as a de-risking playbook, not a deterrent.</p>
+    <div class="grid two">
+      <div class="card"><h3 class="serif">Memory is commoditizing</h3><p>Native in ChatGPT / Claude / Gemini; Mem0 ($24M) is AWS’s default; Cloudflare ships Agent Memory. “We have memory” is table stakes.<span class="verdict">not a moat</span></p></div>
+      <div class="card"><h3 class="serif">Interop is free</h3><p>MCP is near-universal and Linux-Foundation-governed; A2A hit v1.0. “Any-agent, any-channel” is a commodity you consume — so don’t try to <em>be</em> it.<span class="verdict">consume, don’t reinvent</span></p></div>
+      <div class="card"><h3 class="serif">Security is the #1 fear</h3><p>The loudest, most-repeated complaint: agents that act as you run “as root” — prompt injection, a real CVE, no consent model. Nobody has solved safe operation.<span class="verdict ok">the whitespace</span></p></div>
+      <div class="card"><h3 class="serif">OpenClaw: proof + warning</h3><p>Real daily demand (email triage, calendar, Slack “employees”) — but four unmet walls: reliability, security, cost, no monetization. And its model access got throttled.<span class="verdict ok">the walls are the moat</span></p></div>
+    </div>
+    <div class="callout" style="margin-top:16px">
+      <span class="label">One sentence that names the opening</span>
+      <p>“Five companies have five separate memory systems, and none of them talk to each other.” Portable, user-owned memory that spans them is wide open — and no incumbent is incentivized to build it.</p>
+    </div>
+  </section>
+
+  <hr class="membrane">
+
+  <section>
+    <div class="sec-head"><span class="n">03</span><h2 class="serif">The wedge</h2><span class="eyebrow tag">the moat</span></div>
+    <div class="wedge">
+      <p class="big">The moat isn’t the channels, the model, or the memory. It’s the <u>trust layer</u> + <u>owned, layered memory</u> — the two things the whole field is failing at.</p>
+      <p>OpenClaw proved millions want a self-hosted, any-channel, BYO-agent personal AI. Its three walls — “running as root,” unreliability, and cost — are precisely what a platform can own: agents that act over real accounts <em>safely</em>. Trust is the product.</p>
+
+      <div class="split">
+        <div class="side">
+          <h4>Private — only you</h4>
+          <ul>
+            <li>personal life, unclassified by default</li>
+            <li>never surfaces to anyone else</li>
+            <li>leaves with you cleanly</li>
+          </ul>
+        </div>
+        <div class="bar" aria-hidden="true"></div>
+        <div class="side">
+          <h4>Shared / Org — the workspace</h4>
+          <ul>
+            <li>team decisions, shared context</li>
+            <li>scoped by workspace, enforced in the database</li>
+            <li>survives the person who left</li>
+          </ul>
+        </div>
+      </div>
+      <p style="margin:0; font-size:14px; color:var(--muted)"><span class="mono" style="font-size:12px">THE MEMBRANE</span> — a non-bypassable boundary, enforced below the model, not by a prompt. A false-private is a small miss; a false-shared is a betrayal.</p>
+
+      <table>
+        <caption>Community’s unsolved pain → what helloo already has the bones for</caption>
+        <thead><tr><th>What people say is broken</th><th>helloo’s answer</th></tr></thead>
+        <tbody>
+          <tr><td>“I want it to act as me, not just chat”</td><td>Confirm-gated executable tools + proactive engine</td></tr>
+          <tr><td>“Memory is untrustworthy — it forgets, it leaks”</td><td>Membrane + provenance + versioned, revocable atoms</td></tr>
+          <tr><td>“Giving an agent access is running as root”</td><td>Approve-before-act + permission filters + audit + spend caps</td></tr>
+          <tr><td>“My AI should be mine, self-hostable”</td><td>Open-core; the memory is your asset, not our lock-in</td></tr>
+          <tr><td>“Five memory silos don’t talk to each other”</td><td>Expose the membrane as an MCP server → spans Claude / ChatGPT</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <hr class="membrane">
+
+  <section>
+    <div class="sec-head"><span class="n">04</span><h2 class="serif">The primitives</h2><span class="eyebrow tag">architecture</span></div>
+    <p>A “helloo” is a personal AI composed of seven primitives. Much of this already exists in the working <span class="mono" style="font-size:13px">helloo-brain</span> codebase — the build is extract, harden, open, multi-tenant, MCP-native, not greenfield.</p>
+    <div class="stack">
+      <div class="layer"><span class="idx">1</span><span class="body"><b>Identity &amp; memory</b> — <span>layered membrane, owned + portable, bi-temporal currency</span></span><span class="pill core">core</span></div>
+      <div class="layer"><span class="idx">2</span><span class="body"><b>Agent runtime</b> — <span>many agents per AI; provider-agnostic loop</span></span><span class="pill core">core</span></div>
+      <div class="layer"><span class="idx">3</span><span class="body"><b>Tool / skill registry</b> — <span>MCP servers + markdown skill-files, scoped per agent</span></span><span class="pill core">core</span></div>
+      <div class="layer"><span class="idx">4</span><span class="body"><b>Channel adapters</b> — <span>web/native, Telegram, SMS, call, MCP-into-Claude/GPT</span></span><span class="pill core">core</span></div>
+      <div class="layer"><span class="idx">5</span><span class="body"><b>Workspaces</b> — <span>orgs → users, users in many orgs; memory scoped by tenant</span></span><span class="pill prem">premium</span></div>
+      <div class="layer"><span class="idx">6</span><span class="body"><b>Bring-your-own-agent</b> — <span>any A2A/MCP agent inherits channels + memory + trust</span></span><span class="pill prem">premium</span></div>
+      <div class="layer"><span class="idx">7</span><span class="body"><b>Trust &amp; governance</b> — <span>approve-before-act, permission filters, sandbox, audit, spend caps</span></span><span class="pill moat">the moat</span></div>
+    </div>
+  </section>
+
+  <hr class="membrane">
+
+  <section>
+    <div class="sec-head"><span class="n">05</span><h2 class="serif">The WhatsApp line</h2><span class="eyebrow tag">channel risk</span></div>
+    <div class="callout warn">
+      <span class="label">Verified — Jan 15, 2026</span>
+      <p>Meta bars <strong>general-purpose AI chatbots</strong> from the WhatsApp Business Platform. The banned definition — LLM-powered, open-domain, not restricted to a specific business process — <em>is</em> a personal AI. OpenAI and Perplexity already wound their WhatsApp bots down. A Business number puts you inside the ban, not outside it.</p>
+    </div>
+    <p style="margin-top:14px">So the channel abstraction defaults to the compliant, open surfaces — <strong>native/web, Telegram, Signal, iMessage, SMS, calls, and MCP into Claude/ChatGPT</strong>. WhatsApp is offered as a best-effort, at-risk channel; no user’s personal AI is ever allowed to depend on a channel Meta can switch off.</p>
+  </section>
+
+  <hr class="membrane">
+
+  <section>
+    <div class="sec-head"><span class="n">06</span><h2 class="serif">The path</h2><span class="eyebrow tag">roadmap</span></div>
+    <div class="phases">
+      <div class="phase"><div class="ph">Phase 0</div><h3 class="serif">Extract &amp; harden</h3><p>Provider-agnostic runtime, MCP-native registry, membrane as real Postgres RLS, memory-quality evals.</p></div>
+      <div class="phase"><div class="ph">Phase 1</div><h3 class="serif">Open core + trust</h3><p>OSS runtime with great DX, the trust layer as the headline, 2–3 compliant channels, dogfood the flagship AI.</p></div>
+      <div class="phase"><div class="ph">Phase 2</div><h3 class="serif">Hosted + BYO</h3><p>Managed memory, workspaces/orgs, governance &amp; spend controls, BYO-agent, the agent/skill registry. The revenue layer.</p></div>
+      <div class="phase"><div class="ph">Phase 3</div><h3 class="serif">Ecosystem</h3><p>Many hellos collaborating across orgs; registry network effects — the grand vision, on a validated, monetized core.</p></div>
+    </div>
+  </section>
+
+  <hr class="membrane">
+
+  <section>
+    <div class="sec-head"><span class="n">07</span><h2 class="serif">Moat &amp; money</h2></div>
+    <div class="grid two">
+      <div class="card">
+        <h3 class="serif">Where defensibility lives</h3>
+        <ul class="lead-list" style="margin-top:10px">
+          <li>The trust / governance layer — safe agent action</li>
+          <li>Owned, portable, layered memory (the membrane)</li>
+          <li>Registry network effects + brand as the <em>safe</em> place to run personal AIs</li>
+        </ul>
+      </div>
+      <div class="card">
+        <h3 class="serif">How it earns</h3>
+        <ul class="lead-list" style="margin-top:10px">
+          <li>Open-core runtime — free, self-hostable</li>
+          <li>Hosted premium — managed memory, workspaces, governance, channel gateway, registry</li>
+          <li>Anchored between consumer (~$20/mo) and team seats (~$30–50/user); usage covers memory/inference/channel COGS</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <hr class="membrane">
+
+  <section>
+    <div class="sec-head"><span class="n">08</span><h2 class="serif">Risk register</h2></div>
+    <div class="risks">
+      <div class="risk"><span class="sev hi">HI</span><span class="rk"><b>WhatsApp ban.</b> <span>Design channels so no helloo depends on it; confirm the number’s classification.</span></span></div>
+      <div class="risk"><span class="sev hi">HI</span><span class="rk"><b>Security is existential.</b> <span>Running agents over real accounts is a huge attack surface — sandbox, permissions, audit from day one, not later.</span></span></div>
+      <div class="risk"><span class="sev hi">HI</span><span class="rk"><b>Commoditization.</b> <span>A thin wrapper over MCP + a model is a pipe. Trust + owned memory must be real substance.</span></span></div>
+      <div class="risk"><span class="sev md">MD</span><span class="rk"><b>Model-provider dependency.</b> <span>Provider-agnostic runtime — a terms change must never kill users (OpenClaw got throttled).</span></span></div>
+      <div class="risk"><span class="sev md">MD</span><span class="rk"><b>Monetization discipline.</b> <span>OSS adoption ≠ a business; the hosted layer has to exist early.</span></span></div>
+      <div class="risk"><span class="sev md">MD</span><span class="rk"><b>Focus.</b> <span>Seven primitives is a lot — flagship + trust + memory ship before breadth.</span></span></div>
+    </div>
+  </section>
+
+  <div class="pullquote">
+    <blockquote>“Everyone’s about to have a personal AI. The default one will belong to Apple, Google, or OpenAI — it knows you, but it’s theirs. The alternatives are powerful and completely unsafe. <b>helloo is the infrastructure for personal AIs you can trust and own</b> — an asset you build, not a subscription you rent.”</blockquote>
+  </div>
+
+  <footer>
+    <p class="mono">helloo · personal-AI infrastructure · strategy v1 · 2026-08-25</p>
+    <p>Research caveat: some 2026 datapoints are vendor- or press-sourced; the WhatsApp ban is verified. Community sentiment is Hacker-News-verified (Reddit was not machine-accessible; themes via press). Full working plan and sources live in the strategy doc.</p>
+  </footer>
+
+</div>
