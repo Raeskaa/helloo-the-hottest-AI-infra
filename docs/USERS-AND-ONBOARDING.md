@@ -23,7 +23,7 @@ Candidate early segments (Mahesh's list + refinement):
 | Small business owners / solopreneurs | act across accounts, chase things, no team | strong WTP; need it to just work |
 | Content creators (IG/TikTok/YouTube) | live in DMs/comments; drowning in admin; brand voice memory | dual pain (admin + audience); channel-native fit |
 
-**Beachhead question (to be decided with research):** go deep on the *own-your-AI tech* crowd first (evangelism + build-in-public + migration hook), or a *paying* vertical (creators / solo business owners)? Likely: **tech/builders as the evangelist wedge → creators/solopreneurs as the first paying vertical.** Research is pressure-testing this.
+**Beachhead — decided by research (see §8):** the sharpest wedge is the **intersection: AI-native *technical solopreneurs* / indie hackers** (tech + runs a one-person business). They uniquely combine **lowest cost-to-reach** (dev channels, build-in-public — where helloo already lives), **business willingness-to-pay** (a tool that makes/saves money beats the $10 consumer ceiling), **extensibility appetite** (MCP/API/skills), and **loud evangelism**. Land there → expand to non-technical small-biz owners → creator-*entrepreneurs* ($2k–30k/mo). Students + aspiring creators = **growth/top-of-funnel, not revenue** (won't pay). Busy parents/pros = high-pain but slow/privacy-blocked → **phase 2**.
 
 ---
 
@@ -108,12 +108,43 @@ Not a settings feature — a *front-door hook*. Why: it solves cold-start (usefu
 ---
 
 ## 7. Open questions
-- Which door is the **hero** for v1? (lean: web sign-up + inside-Claude/ChatGPT via MCP + Telegram — reach the own-your-AI migrators with no WhatsApp platform risk.)
+- Which door is the **hero** for v1? (lean: web sign-up + inside-Claude/ChatGPT via MCP + Telegram — reach the technical-solopreneur migrators with no WhatsApp platform risk.)
 - What's the **minimum** a hello needs before it's useful? (defines onboarding length.)
-- Beachhead: **tech/builders (evangelist) vs creators/solopreneurs (paying)** — where to go deep first.
-- Migration parsing: how much of a ChatGPT/Claude export is *usefully* extractable into atoms?
+- Migration parsing: how much of a ChatGPT/Claude export is *usefully* extractable into atoms? (incumbents' own imports are shallow — see §8.)
 
 ---
 
-## 8. Research (folding in)
-*Three research streams in progress — early-adopter personas + day-one demand + pull; creators as a segment; the acquisition hook + migration-as-onboarding + GTM. Findings + sources will be folded into §1–3 and §5.*
+## 8. Research findings (2026, sourced)
+
+**Market backdrop (constrains everything):**
+- **Defaults barely leak.** ChatGPT ~800–900M weekly actives; <10% of weekly users even *visited* another provider in 2025; 91% reach for their preferred assistant for nearly every task. *You must be dramatically better at a specific job, not marginally better overall.* [a16z 2025; Menlo Ventures 2025]
+- **Almost nobody pays.** ~3% of US AI users convert to paid; **93% won't pay more than $10/mo**; 81% of the $12B consumer market goes to general assistants, ~70% to OpenAI. → chase segments with *business/outcome* logic. [Menlo Ventures; Bloomberg Intelligence; NPR 2026]
+- **Memory is now table stakes, not a differentiator** — OpenAI/Google/Anthropic all shipped it. BUT their memory is *shallow and non-portable* — the **owned, portable memory moat is still unclaimed.** That gap is helloo's opening. [a16z; Menlo; MemoryPlugin 2026]
+- **Usage shifted from "tool" to "life"** — "organizing my life" and personal support nearly doubled YoY; validates the *personal-AI* framing over a productivity tool. [HBR/Forbes 2025]
+
+**Segment scorecard (reach · pain · WTP · evangelism):**
+| Segment | WTP | Reach/CAC | Role |
+|---|---|---|---|
+| **Technical solopreneurs / indie hackers** (tech ∩ small-biz) | **business WTP** | **lowest** (dev channels, build-in-public) | **★ Beachhead** |
+| Non-technical small-biz / solopreneurs | strong (rising: 2+ AI-service adoption 10→18%, 88% holding/growing spend) | medium | expand next |
+| Creator-*entrepreneurs* ($2k–30k/mo, 2+ platforms, brand deals) | $50–150/mo | creator word-of-mouth | paying vertical |
+| Tech workers (broad) | high but self-host/rebuild; only ~29% trust AI output | lowest | evangelists, hard to keep |
+| Busy pros / parents | good intent, $10 ceiling; privacy = #1 blocker | diffuse, pricey | phase 2 |
+| Students / aspiring creators | ~0 (won't pay) | viral, cheap | **growth only, not revenue** |
+
+**The 3 hooks that actually pull (ranked):**
+1. **Migration-as-onboarding** — "paste your old AI's brain; now it's portable and *yours*." Incumbents shipped imports in 2026 but they're *shallow and lock-you-in*; a **neutral, user-owned membrane that imports from all and stays yours is a position they can't copy without cannibalizing their own lock-in.** Make the sign-up itself the aha (first 3 minutes). [Glasp; My Written Word 2026]
+2. **Owned memory that compounds across every channel** — the retention loop (context → personalization → better output → return), delivered anywhere (Telegram/MCP/web) so no single channel ban can kill the asset. Retention > wow (Sora: 12M downloads, <8% D30). [VC Cafe 2025; a16z]
+3. **A shareable "claim your hello" artifact** + scarce double-sided referral — product-as-distribution (like "Made with" loops); matches our federation viral loop. [AI-Native GTM Playbook 2026]
+
+**Ownership/privacy as a selling message:** converts a *committed minority* (devs, students, small-biz with client data), **not the mainstream on its own** — "if privacy is the only differentiator, it appeals to privacy insiders." Reframe as a *felt benefit* (portable, works everywhere, no re-explaining, can't be leaked/subpoenaed), riding concrete 2025–26 trust failures (OpenAI court-ordered to retain deleted chats; ~300M-message leak; training-on-by-default). [Proton; Digiday; Glasp; Sonomos 2026]
+
+**Trust is the whole GTM, not a feature.** Cross-account action is simultaneously the core *pull* and the #1 *barrier* — "the pitch and the objection are the same sentence." 71% of non-adopters cite data privacy; Signal's president calls agentic-AI privacy "profound." → the **trust layer + approval-gating + owned membrane** *is* the go-to-market. [Menlo; TechRadar 2026; Panoplai 2025]
+
+**Day-one demands (deliver in the first session or lose them):**
+1. Remember me without being re-told. 2. Connect real accounts fast + safely, with **visible, granular, revocable permissions** up front. 3. Actually *do* a task (send/schedule/book), with a confirm before anything irreversible. 4. Reach me where I already am (text-grade, zero learning curve). 5. Handle the universal first jobs: email/calendar/todo/research/repurpose. 6. Import my context so memory feels instant. [Menlo; Fortune 2025]
+
+**GTM playbook (bootstrapped, cheap — proven at AI-native scale):**
+1. **Build-in-public** founder channel, daily, with real numbers. 2. Authentic presence in 5–10 Reddit/HN/Discord communities + open-source a component. 3. **Product-as-distribution:** the "claim your hello" artifact wired to a **scarce double-sided referral**. 4. A small **paid creator micro-network** *after* ~500 users show pull. 5. **Credit-based free tier** as the upgrade trigger (controls inference cost). Activate together, then double down on whatever pulls hardest around ~500 users. [prodfolks 2026; AI-Native GTM Playbook]
+
+*Caveats: several 2026 datapoints are from press/practitioner sources and future-dated events; load-bearing facts (won't-pay rates, defaults-don't-leak, memory-is-table-stakes, WhatsApp ban) recur across independent sources. Full sourced reports live in the private plan.*
