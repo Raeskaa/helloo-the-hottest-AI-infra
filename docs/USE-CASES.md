@@ -12,6 +12,8 @@ A tracked user ran **~60 automations over 18 months — only 5 survived** past a
 
 **Two rules for every helloo use case:** (a) **close the loop to a real endpoint** — send / schedule / file, never produce a doc; (b) prefer **time-based or event-triggered** categories that already have a natural cadence.
 
+**Language (from research — see [`PRD.md`](../PRD.md) positioning):** to users these are **"automations / routines that actually work"**, never "agents." Default is **"informs > acts"** — helloo surfaces and drafts; it *acts* only through the approval gate; and it stays **conditional** (silent when nothing changed), **cost-capped**, and **kill-switchable**. That's exactly the reliability + trust bar this crowd (having been burned by unattended agents) demands.
+
 ---
 
 ## The competitive gap — why incumbents' routines fail (helloo's opening)

@@ -8,7 +8,18 @@
 ## Personas
 - **The individual** (v1) — a founder/professional who wants an assistant that remembers and acts. Dogfood persona.
 - **The team member** (v2) — same person, now inside an org with shared context.
-- **The developer / extender** (v2/v3) — brings agents/skills, builds on the platform.
+- **The developer / extender** (v2/v3) — brings skills, builds on the platform.
+
+## Positioning & product language (from user research — apply everywhere)
+Research with the beachhead (technical solopreneurs / AI power users on HN, Indie Hackers, Lobsters) sharpened how helloo should talk about itself. Apply across product copy, onboarding, and marketing:
+- **Say "automations / routines that actually work" — not "agents."** To this crowd "agent" = unreliable + surprise API bills. Frame every routine as **bounded, observable, cost-capped**, with **"informs > acts"** as the default: it surfaces and drafts; it *acts* only through the approval gate; the kill-switch is always visible. *(Internally/dev-facing, "agent" and "BYO-agent" stay as technical terms — this is about user-facing language.)*
+- **Memory = *trustworthy and correctable*, not "remembers everything."** Lead with inspect / edit / **forget**, provenance ("why do you know this"), and **export to human-readable, git-able files** (the crowd's non-negotiable: "human-readable, local, under version control"). "Remember everything" backfires (poisoning, staleness, sycophancy) and reads as naïve.
+- **Position: "independent of any one model, and it reaches into your real life."** Provider-independence ("independence, not loyalty") + acting across real accounts is the switch trigger — not "a better assistant."
+- **Lead with a concrete daily job + local-first / privacy — never "memory" as an abstraction.** Bare "we remember across models" pitches get ignored; a specific job (a morning brief that *acts*, chase my invoices) with the ownership promise underneath is what lands.
+- **Ownership is a *felt benefit*, not a slogan.** "Own your AI" is now table-stakes rhetoric — differentiate on *how* (the membrane, portability, correctable memory), framed as "portable, works everywhere, can't be leaked, no re-explaining," never a privacy lecture.
+- **Pricing must be flat, predictable, legible.** The nerve is **ambiguity, not price** ("silently drains $30 in 8 minutes"). Avoid metered/token pricing on memory; consider ownership/one-time framing; make value **accrue over time** (the longer you use it, the more it knows you) — the antidote to the 2–3-month churn cliff.
+
+**Beachhead:** primary target = **technical solopreneurs / indie hackers** (business WTP + lowest CAC + evangelism) → expand to creator-*entrepreneurs* and small-biz (paying) → students/aspiring-creators are growth, not revenue. See [`docs/USERS-AND-ONBOARDING.md`](docs/USERS-AND-ONBOARDING.md).
 
 ---
 

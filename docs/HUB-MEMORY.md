@@ -58,6 +58,7 @@ Almost every feature reads from or writes to memory: Conversation recalls it, Pe
 - **Calm and yours.** This is the "it's mine" promise made tangible — not a scary database. Plain language, not schema.
 - **Always answer "why."** Provenance is one tap from any fact; trust is built by showing the receipt.
 - **Forgetting is real and easy.** One tap; honest about what's removed (and that "forget" truly cascades, not a fake toggle).
+- **Exportable and legible.** The builder crowd's non-negotiable is *"human-readable, local, under version control."* Memory should export to plain, git-able files the user can read and edit — export is the proof behind "it's yours." Pitch *correctable* memory, never "remembers everything" (which backfires: poisoning, staleness, sycophancy).
 - **Show change, don't hide it.** When helloo's understanding updated, say so ("you moved to Berlin — updated"), don't silently rewrite (the ChatGPT "Dreaming" anti-pattern).
 - **Low-confidence asks, doesn't guess** — surfaces "is this right?" instead of asserting.
 

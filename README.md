@@ -26,6 +26,8 @@ Everyone is about to have a personal AI. But the mass-market default will belong
 
 Not a chatbot with a nicer personality. Not a memory feature. Not a walled-garden assistant. Not another agent that runs as root and hopes for the best.
 
+**How we say it** (from talking to the technical-solopreneur crowd): helloo is **the layer that makes you independent of any one model and reaches into your real life** — **automations that actually work** (bounded, observable, cost-capped; it *informs* and drafts, and acts only with your OK), and a memory that's **yours, correctable, and exportable** — not "an AI that remembers everything." We don't say "agents" to users, and we don't lecture about privacy — we make it a felt benefit. Full language guide in [`PRD.md`](PRD.md#positioning--product-language-from-user-research--apply-everywhere).
+
 ---
 
 ## The wedge — where the moat actually is
