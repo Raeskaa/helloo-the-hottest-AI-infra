@@ -147,4 +147,17 @@ Not a settings feature — a *front-door hook*. Why: it solves cold-start (usefu
 **GTM playbook (bootstrapped, cheap — proven at AI-native scale):**
 1. **Build-in-public** founder channel, daily, with real numbers. 2. Authentic presence in 5–10 Reddit/HN/Discord communities + open-source a component. 3. **Product-as-distribution:** the "claim your hello" artifact wired to a **scarce double-sided referral**. 4. A small **paid creator micro-network** *after* ~500 users show pull. 5. **Credit-based free tier** as the upgrade trigger (controls inference cost). Activate together, then double down on whatever pulls hardest around ~500 users. [prodfolks 2026; AI-Native GTM Playbook]
 
+### Primary early-adopter voice (Hacker News + Indie Hackers — real threads)
+The builder/AI-power-user crowd (our beachhead) in their own words — and it *corrects* a few assumptions:
+- **"Own your AI" = loyalty + portability, NOT literal self-hosting.** They want an AI "loyal only to me," not ad/engagement-optimized — but *"most won't run a GPU."* Selling on-device as the *only* path narrows you to a hobbyist slice. Sell **"loyal to me and portable."**
+- **Memory is the most-agreed pain — but it's commoditizing** (memory shipped free across incumbents). The durable wedge is the **identity + ownership + portability layer**, not "we remember your chats." Their emotional case for export: losing your memory to a platform = *"a lobotomy."* And a builder truth: **LOAD ≠ READ** — stuffing context in ≠ the model using it.
+- **Reliability, not model IQ, is the product.** Practitioners who ship agents say *"they can automate but they are not reliable… you don't know when it will break."* What sticks = **proactive + gated + legible** routines (show what ran, approve the risky step, tell me when it broke). Autonomous "just handle it" reads as naïve to them.
+- **Switching is nearly free (no network effect) — they try you AND leave fast.** Retention = a feature they can't get elsewhere + accumulated context they'd lose. **Portability both pulls them in and keeps them — same asset.**
+- **Pricing: flat, predictable, non-overlapping.** Anti-stacking reflex ("$7 is out of range when I already pay for ChatGPT"); metered-agent-bill anxiety; **~47% cancel between month 4–8.** Priced as "another $20 chat sub" → churn cliff. Priced as **"the durable layer that owns your context across all your models"** → escapes the overlap trap.
+- **Migration is *latent*** — cited as a right/principle more than acted on; few actually export today. So treat "bring your data" as **proof of the ownership promise + an acquisition narrative + a trust signal**, and the cold-start fix once they're in — *not necessarily the first-click headline* for this skeptical crowd (that's more likely "loyal + portable + reliable proactive routines where I already chat").
+
+**Cynicisms to disarm:** the "memory/second-brain" category is flooded and they smell it; autonomous-agent claims read as naïve; "another subscription" is a reflex no.
+
+*(Primary = Hacker News threads via API + one Indie Hackers post. **Still owed: real Reddit** — blocked in this environment; needs the Claude-in-Chrome extension connected in an interactive session, or pasted threads.)*
+
 *Caveats: several 2026 datapoints are from press/practitioner sources and future-dated events; load-bearing facts (won't-pay rates, defaults-don't-leak, memory-is-table-stakes, WhatsApp ban) recur across independent sources. Full sourced reports live in the private plan.*
