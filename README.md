@@ -109,6 +109,7 @@ We are building the *non-naive* version on purpose. Naive horizontal infra is th
 - [`VERSIONS.md`](VERSIONS.md) — proposed v1 / v2 / v3 build sequence (for the team to confirm).
 - [`PRD.md`](PRD.md) — product features/surfaces per version, for the UX team to design from.
 - [`docs/USERS-AND-ONBOARDING.md`](docs/USERS-AND-ONBOARDING.md) — who comes, why, the entry points, and migration-as-onboarding.
+- [`docs/USE-CASES.md`](docs/USE-CASES.md) — the use-case taxonomy, grounded in how people actually run AI routines.
 - [`QUESTIONS.md`](QUESTIONS.md) — open questions for engineers. **If you build systems like this, please weigh in** — open an issue or comment inline.
 
 ## Status
