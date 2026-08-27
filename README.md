@@ -112,6 +112,7 @@ We are building the *non-naive* version on purpose. Naive horizontal infra is th
 - [`PRD.md`](PRD.md) — product features/surfaces per version, for the UX team to design from.
 - [`docs/USERS-AND-ONBOARDING.md`](docs/USERS-AND-ONBOARDING.md) — who comes, why, the entry points, and migration-as-onboarding.
 - [`docs/USE-CASES.md`](docs/USE-CASES.md) — the use-case taxonomy, grounded in how people actually run AI routines.
+- [`docs/HORIZON.md`](docs/HORIZON.md) — the 2yr/5yr research roadmap: what's coming (papers) and what helloo does with it.
 - [`QUESTIONS.md`](QUESTIONS.md) — open questions for engineers. **If you build systems like this, please weigh in** — open an issue or comment inline.
 
 ## Status
