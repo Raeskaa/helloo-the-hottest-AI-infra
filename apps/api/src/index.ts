@@ -1,5 +1,6 @@
 import { Hono } from "hono";
 import { cors } from "hono/cors";
+import { pingDb } from "@helloo/db";
 import { createAuth } from "@helloo/auth";
 import { ingestText, listMemory, recall } from "@helloo/memory";
 import { listOpenApprovals, decide } from "@helloo/trust";
@@ -145,4 +146,14 @@ app.get("/api/connections", async (c) => {
   return c.json({ connections: await listConnections(c.env, owner) });
 });
 
-export default app;
+export default {
+  fetch: app.fetch,
+  // Cron warm-up: a trivial query keeps Neon's compute from suspending (prod only).
+  async scheduled(_event: ScheduledController, env: AppEnv, _ctx: ExecutionContext): Promise<void> {
+    try {
+      await pingDb(env.DATABASE_URL);
+    } catch {
+      // best-effort; a failed warm-up just means the next real request wakes it.
+    }
+  },
+};

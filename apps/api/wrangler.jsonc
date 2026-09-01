@@ -6,5 +6,8 @@
   "main": "src/index.ts",
   "compatibility_date": "2026-01-01",
   "compatibility_flags": ["nodejs_compat"],
-  "observability": { "enabled": true }
+  "observability": { "enabled": true },
+  // Keep Neon's free-tier compute warm (it suspends after ~5 min idle) so real users
+  // don't hit cold-start errors. Runs only in production, not local dev.
+  "triggers": { "crons": ["*/4 * * * *"] }
 }

@@ -2,6 +2,7 @@ import { Pool } from "@neondatabase/serverless";
 import { drizzle, type NeonDatabase } from "drizzle-orm/neon-serverless";
 import { sql } from "drizzle-orm";
 import * as schema from "./schema";
+import { withDbRetry } from "./retry";
 
 type Schema = typeof schema;
 export type TenantDb = NeonDatabase<Schema>;
@@ -21,14 +22,17 @@ export async function withTenant<T>(
   ownerId: string,
   fn: (tx: Tx) => Promise<T>,
 ): Promise<T> {
-  const pool = new Pool({ connectionString: databaseUrl });
-  try {
-    const db = drizzle(pool, { schema });
-    return await db.transaction(async (tx) => {
-      await tx.execute(sql`select set_config('app.owner_id', ${ownerId}, true)`);
-      return await fn(tx);
-    });
-  } finally {
-    await pool.end();
-  }
+  // The whole transaction is atomic, so retrying on a transient connect error is safe.
+  return withDbRetry(async () => {
+    const pool = new Pool({ connectionString: databaseUrl });
+    try {
+      const db = drizzle(pool, { schema });
+      return await db.transaction(async (tx) => {
+        await tx.execute(sql`select set_config('app.owner_id', ${ownerId}, true)`);
+        return await fn(tx);
+      });
+    } finally {
+      await pool.end();
+    }
+  });
 }

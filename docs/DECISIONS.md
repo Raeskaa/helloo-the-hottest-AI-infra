@@ -4,6 +4,14 @@
 
 ---
 
+## ADR-0009 — Neon resilience: retry wrapper + cron warm-up
+**Date:** 2026-09-02 · **Status:** accepted
+
+- Neon's free-tier compute suspends when idle; the first request(s) after a wake return transient `internal error; reference = …` (HTTP 500) or connection errors, on BOTH drivers. Two mitigations:
+  1. **Retry with backoff** (`packages/db/retry.ts`): the neon-http driver uses a retrying `fetch` (`neonConfig.fetchFunction`); `withTenant` wraps its whole (atomic) transaction in `withDbRetry`. Retries only transient errors, never real ones (unit-verified). Covers **brief** blips (a few seconds).
+  2. **Cron warm-up** (`apps/api` `scheduled` handler + `wrangler.jsonc` `crons: ["*/4 * * * *"]`): a `select 1` every 4 min keeps the compute from suspending. **Production only** (local dev doesn't fire crons).
+- **Not fully solvable on free tier:** a full cold-start (~45s) or a sustained outage/throttle exceeds any sane request-hold. The complete fix is **paid always-on Neon compute** (or a different Postgres). Retry+warm-up make the free tier usable for dev/demo; flag the upgrade before real users.
+
 ## ADR-0008 — Integrations: Composio (v3 SDK), connection layer first
 **Date:** 2026-09-02 · **Grounded in:** SYSTEM-MAP §"Integrations", VERSIONS v1 · **Status:** accepted
 
