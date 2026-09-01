@@ -1,20 +1,26 @@
 import type { AppEnv } from "@helloo/core";
-import type { AtomProvenance } from "@helloo/db/schema";
 import { withTenant } from "./db";
-import { assertAtom, currentAtoms, ensureHello, type Atom } from "./repository";
-import { extractFacts, EXTRACTION_MODEL } from "./extract";
+import { currentAtoms, ensureHello, type Atom } from "./repository";
+import { extractFacts } from "./extract";
+import { reconcileFact } from "./reconcile";
 
 export interface IngestResult {
   /** How many candidate facts the model proposed. */
   extracted: number;
-  /** The atoms written this call. */
+  /** New beliefs (no prior atom for that subject+predicate). */
+  added: number;
+  /** Contradicted beliefs superseded by a new version. */
+  updated: number;
+  /** Already-believed facts, reinforced but not duplicated. */
+  unchanged: number;
+  /** The atoms touched this call (added, new versions, and reinforced ones). */
   atoms: Atom[];
 }
 
 /**
- * Write path (ADR-0002): raw text -> extract candidate facts -> append as atoms, all under
- * the owner's tenant context. Reconciliation (ADD/UPDATE/DELETE/NOOP against existing atoms)
- * is a later slice — v1 appends every extracted fact.
+ * Write path (ADR-0002): raw text -> extract candidate facts -> reconcile each against the
+ * current belief (ADD / UPDATE-supersede / NOOP-reinforce), all in one tenant-scoped
+ * transaction so intra-batch duplicates collapse too.
  */
 export async function ingestText(
   env: AppEnv,
@@ -24,28 +30,21 @@ export async function ingestText(
 ): Promise<IngestResult> {
   const facts = await extractFacts(env, text);
 
-  const atoms = await withTenant(env.APP_DATABASE_URL, ownerId, async (tx) => {
+  return withTenant(env.APP_DATABASE_URL, ownerId, async (tx) => {
     const helloId = await ensureHello(tx, ownerId);
-    const written: Atom[] = [];
+    let added = 0;
+    let updated = 0;
+    let unchanged = 0;
+    const atoms: Atom[] = [];
     for (const fact of facts) {
-      const provenance: AtomProvenance[] = [{ source, assertedBy: EXTRACTION_MODEL }];
-      written.push(
-        await assertAtom(tx, {
-          ownerId,
-          helloId,
-          subject: fact.subject,
-          predicate: fact.predicate,
-          object: { value: fact.value },
-          factText: fact.factText,
-          confidence: fact.confidence,
-          provenance,
-        }),
-      );
+      const outcome = await reconcileFact(tx, ownerId, helloId, fact, source);
+      if (outcome.action === "add") added += 1;
+      else if (outcome.action === "update") updated += 1;
+      else unchanged += 1;
+      atoms.push(outcome.atom);
     }
-    return written;
+    return { extracted: facts.length, added, updated, unchanged, atoms };
   });
-
-  return { extracted: facts.length, atoms };
 }
 
 /** Read path (MVP): the owner's current beliefs, newest first. */

@@ -7,6 +7,7 @@ import type { AppEnv } from "@helloo/core";
 import { withTenant, type Tx } from "./db";
 import { assertAtom, currentAtoms, ensureHello } from "./repository";
 import { ingestText, listMemory } from "./ingest";
+import { reconcileFact } from "./reconcile";
 
 export interface MembraneSelfTestResult {
   /** Atoms owner A can see after writing one (should be >= 1). */
@@ -109,6 +110,64 @@ export async function ingestSelfTest(env: AppEnv, text: string): Promise<IngestS
           confidence: a.confidence,
         })),
       };
+    } finally {
+      await sdb.delete(schema.user).where(eq(schema.user.id, ownerA));
+    }
+  } finally {
+    await setupPool.end();
+  }
+}
+
+export interface ReconcileSelfTestResult {
+  actions: string[];
+  current: Array<{ predicate: string; object: unknown; version: number }>;
+  totalRows: number;
+  historyKept: boolean;
+}
+
+/**
+ * Deterministic proof of the reconciler over the WS path (no auth, no LLM): the same
+ * (subject,predicate) with a new value supersedes; a repeat is a noop; history is retained.
+ */
+export async function reconcileSelfTest(env: AppEnv): Promise<ReconcileSelfTestResult> {
+  const ownerA = `selftest-${crypto.randomUUID()}`;
+  const setupPool = new Pool({ connectionString: env.DATABASE_URL });
+  const f = (predicate: string, value: string, confidence = 0.9) => ({
+    subject: "user",
+    predicate,
+    value,
+    factText: `user ${predicate} ${value}`,
+    confidence,
+  });
+  try {
+    const sdb = drizzle(setupPool, { schema });
+    await sdb.insert(schema.user).values({
+      id: ownerA,
+      name: "reconcile-selftest",
+      email: `${ownerA}@selftest.local`,
+      emailVerified: false,
+    });
+    try {
+      return await withTenant(env.APP_DATABASE_URL, ownerA, async (tx: Tx) => {
+        const helloId = await ensureHello(tx, ownerA);
+        const actions: string[] = [];
+        actions.push((await reconcileFact(tx, ownerA, helloId, f("lives_in", "Paris"), "selftest")).action);
+        actions.push((await reconcileFact(tx, ownerA, helloId, f("lives_in", "Lyon"), "selftest")).action);
+        actions.push((await reconcileFact(tx, ownerA, helloId, f("lives_in", "Lyon"), "selftest")).action);
+        actions.push((await reconcileFact(tx, ownerA, helloId, f("prefers", "tea"), "selftest")).action);
+        const current = (await currentAtoms(tx, helloId)).map((a) => ({
+          predicate: a.predicate,
+          object: a.object,
+          version: a.version,
+        }));
+        const allRows = await tx.select({ id: atom.id }).from(atom).where(eq(atom.helloId, helloId));
+        return {
+          actions,
+          current,
+          totalRows: allRows.length,
+          historyKept: allRows.length > current.length,
+        };
+      });
     } finally {
       await sdb.delete(schema.user).where(eq(schema.user.id, ownerA));
     }
