@@ -1,16 +1,4 @@
-export interface AppEnv {
-  BETTER_AUTH_URL: string;
-  BETTER_AUTH_SECRET: string;
-  DATABASE_URL: string;
-  RESEND_API_KEY?: string;
-  EMAIL_FROM?: string;
-  GOOGLE_CLIENT_ID?: string;
-  GOOGLE_CLIENT_SECRET?: string;
-  GITHUB_CLIENT_ID?: string;
-  GITHUB_CLIENT_SECRET?: string;
-  APPLE_CLIENT_ID?: string;
-  APPLE_CLIENT_SECRET?: string;
-}
+import type { AppEnv } from "@helloo/core";
 
 /**
  * Send an email via Resend. Dev fallback: with no RESEND_API_KEY set, the

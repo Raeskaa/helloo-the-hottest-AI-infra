@@ -1,8 +1,11 @@
 import { Hono } from "hono";
 import { cors } from "hono/cors";
-import { createAuth } from "./auth";
-import type { AppEnv } from "./lib/email";
+import { createAuth } from "@helloo/auth";
+import type { AppEnv } from "@helloo/core";
 
+// apps/api is composition-only: it wires the domain packages to HTTP.
+// Domain behaviour lives in packages/* (auth today; memory, trust, agent,
+// channels as they're built).
 const app = new Hono<{ Bindings: AppEnv }>();
 
 // Reflect the request origin with credentials so the browser client can hold
@@ -18,7 +21,7 @@ app.use(
 );
 
 app.get("/", (c) =>
-  c.json({ ok: true, service: "helloo-app", auth: "/api/auth/*", me: "/api/me" }),
+  c.json({ ok: true, service: "helloo-api", auth: "/api/auth/*", me: "/api/me" }),
 );
 
 // Better Auth owns every route under /api/auth/* (sign-in, OTP, social, session, org…).

@@ -1,0 +1,21 @@
+# Copy to `apps/api/.dev.vars` (gitignored) and fill in real values.
+# Prod: set each with `wrangler secret put <NAME>` (run inside apps/api).
+
+# --- Core (required) ---
+BETTER_AUTH_URL=http://localhost:8787
+# Generate:  openssl rand -base64 32
+BETTER_AUTH_SECRET=
+# Neon Postgres pooled connection string (neon.tech)
+DATABASE_URL=
+
+# --- Email (OTP + magic link). Optional in dev: if blank, codes print to console. ---
+RESEND_API_KEY=
+EMAIL_FROM=helloo <onboarding@resend.dev>
+
+# --- Social login (optional — leave a pair blank to disable that provider) ---
+GOOGLE_CLIENT_ID=
+GOOGLE_CLIENT_SECRET=
+GITHUB_CLIENT_ID=
+GITHUB_CLIENT_SECRET=
+APPLE_CLIENT_ID=
+APPLE_CLIENT_SECRET=

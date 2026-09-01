@@ -1,0 +1,10 @@
+{
+  // helloo API — Cloudflare Worker (Hono + Better Auth).
+  // Secrets are NOT stored here. Local: apps/api/.dev.vars (gitignored).
+  // Prod: `wrangler secret put <NAME>`.
+  "name": "helloo-api",
+  "main": "src/index.ts",
+  "compatibility_date": "2026-01-01",
+  "compatibility_flags": ["nodejs_compat"],
+  "observability": { "enabled": true }
+}

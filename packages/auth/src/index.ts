@@ -1,8 +1,9 @@
 import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { emailOTP, magicLink, organization } from "better-auth/plugins";
-import { getDb } from "./db";
-import { sendEmail, type AppEnv } from "./lib/email";
+import { getDb } from "@helloo/db";
+import type { AppEnv } from "@helloo/core";
+import { sendEmail } from "./email";
 
 /** Build the enabled social providers from whatever keys are present. */
 function socialProviders(env: AppEnv) {
@@ -20,9 +21,9 @@ function socialProviders(env: AppEnv) {
 }
 
 /**
- * One helloo = one verified identity. We lead with email OTP + magic link +
- * social sign-in; the organization plugin backs the (later) Slack-style
- * workspaces. Everything is stored in our own Postgres — the user is ours.
+ * One helloo = one verified identity. Passwordless: email OTP + magic link +
+ * social. The organization plugin backs the (later) Slack-style workspaces.
+ * Users are stored in our own Postgres — the user is ours, not a vendor's.
  */
 export function createAuth(env: AppEnv) {
   const db = getDb(env.DATABASE_URL);
@@ -33,7 +34,6 @@ export function createAuth(env: AppEnv) {
     secret: env.BETTER_AUTH_SECRET,
     database: drizzleAdapter(db, { provider: "pg" }),
 
-    // We don't use passwords — passwordless (OTP / magic link) + social only.
     emailAndPassword: { enabled: false },
     socialProviders: socialProviders(env),
 

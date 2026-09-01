@@ -1,0 +1,12 @@
+# SECRETS — never commit (repo is public)
+.dev.vars
+.env
+.env.*
+*.local
+
+# deps / build / caches
+node_modules/
+.wrangler/
+.turbo/
+dist/
+worker-configuration.d.ts

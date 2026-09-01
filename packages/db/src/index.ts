@@ -8,3 +8,4 @@ export function getDb(url: string) {
 }
 
 export type DB = ReturnType<typeof getDb>;
+export * as schema from "./schema";
