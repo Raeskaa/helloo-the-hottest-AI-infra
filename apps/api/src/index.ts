@@ -1,7 +1,7 @@
 import { Hono } from "hono";
 import { cors } from "hono/cors";
 import { createAuth } from "@helloo/auth";
-import { ingestText, listMemory } from "@helloo/memory";
+import { ingestText, listMemory, recall } from "@helloo/memory";
 import type { AppEnv } from "@helloo/core";
 
 // apps/api is composition-only: it wires the domain packages to HTTP.
@@ -60,6 +60,18 @@ app.get("/api/memory", async (c) => {
   const owner = await ownerId(c.env, c.req.raw.headers);
   if (!owner) return c.json({ error: "unauthorized" }, 401);
   return c.json({ atoms: await listMemory(c.env, owner) });
+});
+
+// Semantic recall: ?q=... [&k=8] -> ranked atoms with similarity + provenance.
+app.get("/api/memory/recall", async (c) => {
+  const owner = await ownerId(c.env, c.req.raw.headers);
+  if (!owner) return c.json({ error: "unauthorized" }, 401);
+  const q = c.req.query("q");
+  if (!q || q.trim().length === 0) return c.json({ error: "q required" }, 400);
+  const kRaw = Number(c.req.query("k"));
+  const k = Number.isFinite(kRaw) && kRaw > 0 ? Math.min(Math.floor(kRaw), 50) : 8;
+  const hits = await recall(c.env, owner, q, k);
+  return c.json({ hits });
 });
 
 export default app;

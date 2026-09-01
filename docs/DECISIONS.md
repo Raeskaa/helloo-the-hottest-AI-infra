@@ -4,6 +4,14 @@
 
 ---
 
+## ADR-0005 — Recall index: pgvector in Neon + Gemini embeddings
+**Date:** 2026-09-02 · **Closes:** part of Q13/Q37 (retrieval) · **Grounded in:** `HUB-MEMORY.md` read path, `DATA-MODEL.md §4` · **Status:** accepted
+
+- **Embeddings live in Postgres via pgvector**, in a sidecar `atom_embedding` table (RLS-protected), not on the `atom` record — keeping the "index is a rebuildable/disposable convenience" split (`HUB-MEMORY`). Rationale over Cloudflare Vectorize: one store, one RLS model, transactional with the record, trivial local dev, and plenty fast at our scale. The index is disposable — migrate to Vectorize later only if scale demands.
+- **Model:** `gemini-embedding-001` at **768 dims** (Matryoshka truncation; `text-embedding-004` is 404 for new keys, like `gemini-2.5-flash`). Via the AI SDK (provider-agnostic). Task types: `RETRIEVAL_DOCUMENT` on write, `RETRIEVAL_QUERY` on recall.
+- **v1 recall is vector-only** (cosine). `HUB-MEMORY` mandates multi-signal (never single-vector) — so **keyword (tsvector) + RRF fusion, edges/multi-hop, tiering, and a reranker are the immediate next slices**, not shipped here. Atoms already carry `provenance`, so recall returns "why" for free.
+- Embeddings computed **outside** the DB transaction (before the write) so no external call is held inside a tx. Atoms written before this ADR have no embedding row (not backfilled in v1) — they won't surface in vector recall until re-asserted.
+
 ## ADR-0004 — Identity anchor & one-hello-per-owner (v1)
 **Date:** 2026-09-02 · **Closes:** Q17 · **Status:** accepted
 

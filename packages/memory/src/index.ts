@@ -19,10 +19,19 @@ export {
   type ReconcileOutcome,
 } from "./reconcile";
 export {
+  embedDocuments,
+  embedQuery,
+  EMBEDDING_MODEL,
+  EMBEDDING_DIMS,
+} from "./embedding";
+export { recall, type RecallHit } from "./recall";
+export {
   membraneSelfTest,
   type MembraneSelfTestResult,
   ingestSelfTest,
   type IngestSelfTestResult,
   reconcileSelfTest,
   type ReconcileSelfTestResult,
+  recallSelfTest,
+  type RecallSelfTestResult,
 } from "./selftest";

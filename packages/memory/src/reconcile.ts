@@ -1,8 +1,9 @@
 import { and, desc, eq, isNull, sql } from "drizzle-orm";
-import { atom, type AtomProvenance } from "@helloo/db/schema";
+import { atom, atomEmbedding, type AtomProvenance } from "@helloo/db/schema";
 import type { Tx } from "./db";
 import { assertAtom, type Atom } from "./repository";
 import { EXTRACTION_MODEL, type ExtractedFact } from "./extract";
+import { EMBEDDING_MODEL } from "./embedding";
 
 /**
  * Write-time reconciliation (ADR-0002 / HUB-MEMORY step 3): a new fact is matched against
@@ -52,12 +53,28 @@ async function currentBelief(
   return rows[0];
 }
 
+async function indexEmbedding(
+  tx: Tx,
+  atomRow: Atom,
+  embedding: number[] | undefined,
+): Promise<void> {
+  if (!embedding) return;
+  await tx.insert(atomEmbedding).values({
+    atomId: atomRow.id,
+    ownerId: atomRow.ownerId,
+    helloId: atomRow.helloId,
+    embedding,
+    model: EMBEDDING_MODEL,
+  });
+}
+
 export async function reconcileFact(
   tx: Tx,
   ownerId: string,
   helloId: string,
   fact: ExtractedFact,
   source: string,
+  embedding?: number[],
 ): Promise<ReconcileOutcome> {
   const provenance: AtomProvenance[] = [{ source, assertedBy: EXTRACTION_MODEL }];
   const existing = await currentBelief(tx, helloId, fact.subject, fact.predicate);
@@ -74,6 +91,7 @@ export async function reconcileFact(
       confidence: fact.confidence,
       provenance,
     });
+    await indexEmbedding(tx, created, embedding);
     return { action: "add", atom: created };
   }
 
@@ -116,5 +134,6 @@ export async function reconcileFact(
     .returning();
   const row = opened[0];
   if (!row) throw new Error("reconcileFact: supersede insert returned no row");
+  await indexEmbedding(tx, row, embedding);
   return { action: "update", atom: row };
 }

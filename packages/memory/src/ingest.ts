@@ -2,6 +2,7 @@ import type { AppEnv } from "@helloo/core";
 import { withTenant } from "./db";
 import { currentAtoms, ensureHello, type Atom } from "./repository";
 import { extractFacts } from "./extract";
+import { embedDocuments } from "./embedding";
 import { reconcileFact } from "./reconcile";
 
 export interface IngestResult {
@@ -29,6 +30,11 @@ export async function ingestText(
   source = "conversation",
 ): Promise<IngestResult> {
   const facts = await extractFacts(env, text);
+  // Embed outside the transaction so no external call is held inside a tx (ADR-0005).
+  const embeddings = await embedDocuments(
+    env,
+    facts.map((f) => f.factText),
+  );
 
   return withTenant(env.APP_DATABASE_URL, ownerId, async (tx) => {
     const helloId = await ensureHello(tx, ownerId);
@@ -36,8 +42,8 @@ export async function ingestText(
     let updated = 0;
     let unchanged = 0;
     const atoms: Atom[] = [];
-    for (const fact of facts) {
-      const outcome = await reconcileFact(tx, ownerId, helloId, fact, source);
+    for (const [i, fact] of facts.entries()) {
+      const outcome = await reconcileFact(tx, ownerId, helloId, fact, source, embeddings[i]);
       if (outcome.action === "add") added += 1;
       else if (outcome.action === "update") updated += 1;
       else unchanged += 1;

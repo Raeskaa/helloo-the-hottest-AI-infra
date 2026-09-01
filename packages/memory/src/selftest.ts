@@ -8,6 +8,7 @@ import { withTenant, type Tx } from "./db";
 import { assertAtom, currentAtoms, ensureHello } from "./repository";
 import { ingestText, listMemory } from "./ingest";
 import { reconcileFact } from "./reconcile";
+import { recall } from "./recall";
 
 export interface MembraneSelfTestResult {
   /** Atoms owner A can see after writing one (should be >= 1). */
@@ -168,6 +169,53 @@ export async function reconcileSelfTest(env: AppEnv): Promise<ReconcileSelfTestR
           historyKept: allRows.length > current.length,
         };
       });
+    } finally {
+      await sdb.delete(schema.user).where(eq(schema.user.id, ownerA));
+    }
+  } finally {
+    await setupPool.end();
+  }
+}
+
+export interface RecallSelfTestResult {
+  ingested: { extracted: number; added: number; updated: number };
+  queries: Array<{ q: string; top: string | null; score: number | null }>;
+}
+
+/**
+ * Proves semantic recall over the WS path (Gemini embed + pgvector), no auth: ingest a few
+ * facts, then query and return the top hit per query. Creates + cleans up a throwaway user.
+ */
+export async function recallSelfTest(env: AppEnv): Promise<RecallSelfTestResult> {
+  const ownerA = `selftest-${crypto.randomUUID()}`;
+  const setupPool = new Pool({ connectionString: env.DATABASE_URL });
+  try {
+    const sdb = drizzle(setupPool, { schema });
+    await sdb.insert(schema.user).values({
+      id: ownerA,
+      name: "recall-selftest",
+      email: `${ownerA}@selftest.local`,
+      emailVerified: false,
+    });
+    try {
+      const r = await ingestText(
+        env,
+        ownerA,
+        "I live in Lyon, I work as a chef, and on weekends I love hiking in the Alps.",
+        "selftest",
+      );
+      const qs = ["Where does the user live?", "What is the user's job?", "weekend hobbies"];
+      const queries: RecallSelfTestResult["queries"] = [];
+      for (const q of qs) {
+        const hits = await recall(env, ownerA, q, 1);
+        const top = hits[0];
+        queries.push({
+          q,
+          top: top ? top.atom.factText : null,
+          score: top ? Number(top.score.toFixed(3)) : null,
+        });
+      }
+      return { ingested: { extracted: r.extracted, added: r.added, updated: r.updated }, queries };
     } finally {
       await sdb.delete(schema.user).where(eq(schema.user.id, ownerA));
     }

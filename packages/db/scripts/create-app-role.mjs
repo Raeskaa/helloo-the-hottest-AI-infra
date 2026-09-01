@@ -7,12 +7,12 @@
 import pg from "pg";
 
 const admin = process.env.ADMIN_DATABASE_URL;
-const password = process.env.APP_DB_PASSWORD;
-if (!admin || !password) {
-  console.error("Set ADMIN_DATABASE_URL and APP_DB_PASSWORD");
+const password = process.env.APP_DB_PASSWORD; // optional: only sets/rotates the password when present
+if (!admin) {
+  console.error("Set ADMIN_DATABASE_URL (owner/direct url)");
   process.exit(1);
 }
-if (!/^[0-9a-f]{24,}$/.test(password)) {
+if (password && !/^[0-9a-f]{24,}$/.test(password)) {
   console.error("APP_DB_PASSWORD must be a long hex string (safe to inline in DDL)");
   process.exit(1);
 }
@@ -31,10 +31,17 @@ await client.query(`DO $$ BEGIN
     CREATE ROLE helloo_app LOGIN NOBYPASSRLS;
   END IF;
 END $$;`);
-await client.query(`ALTER ROLE helloo_app WITH LOGIN NOBYPASSRLS PASSWORD '${password}'`);
+if (password) {
+  await client.query(`ALTER ROLE helloo_app WITH LOGIN NOBYPASSRLS PASSWORD '${password}'`);
+  console.log("password set/rotated");
+} else {
+  console.log("no APP_DB_PASSWORD given — grants only, password unchanged");
+}
 
 await client.query(`GRANT USAGE ON SCHEMA public TO helloo_app`);
-await client.query(`GRANT SELECT, INSERT, UPDATE, DELETE ON TABLE "hello", "atom", "audit" TO helloo_app`);
+await client.query(
+  `GRANT SELECT, INSERT, UPDATE, DELETE ON TABLE "hello", "atom", "audit", "atom_embedding" TO helloo_app`,
+);
 await client.query(`GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA public TO helloo_app`);
 // Future membrane tables (created by the owner in migrations) are granted automatically.
 await client.query(

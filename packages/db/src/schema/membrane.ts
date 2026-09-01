@@ -8,6 +8,7 @@ import {
   real,
   jsonb,
   timestamp,
+  vector,
   index,
   uniqueIndex,
 } from "drizzle-orm/pg-core";
@@ -139,6 +140,34 @@ export const audit = pgTable(
   },
   (t) => [index("audit_hello_ts_idx").on(t.helloId, t.ts)],
 );
+
+/**
+ * `atom_embedding` — the recall INDEX (ADR-0005): a disposable, rebuildable vector per atom
+ * version, kept out of the `atom` record. `gemini-embedding-001` @ 768 dims. RLS + the HNSW
+ * index are added in a custom migration (drizzle-kit doesn't emit either).
+ */
+export const atomEmbedding = pgTable(
+  "atom_embedding",
+  {
+    atomId: text("atom_id")
+      .primaryKey()
+      .references(() => atom.id, { onDelete: "cascade" }),
+    ownerId: text("owner_id")
+      .notNull()
+      .references(() => user.id, { onDelete: "cascade" }),
+    helloId: text("hello_id")
+      .notNull()
+      .references(() => hello.id, { onDelete: "cascade" }),
+    embedding: vector("embedding", { dimensions: 768 }).notNull(),
+    model: text("model").notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  },
+  (t) => [index("atom_embedding_hello_idx").on(t.helloId)],
+);
+
+export const atomEmbeddingRelations = relations(atomEmbedding, ({ one }) => ({
+  atom: one(atom, { fields: [atomEmbedding.atomId], references: [atom.id] }),
+}));
 
 export const helloRelations = relations(hello, ({ one, many }) => ({
   owner: one(user, { fields: [hello.ownerId], references: [user.id] }),
