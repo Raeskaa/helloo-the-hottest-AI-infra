@@ -4,14 +4,19 @@ import { pingDb } from "@helloo/db";
 import { createAuth } from "@helloo/auth";
 import { ingestText, listMemory, recall } from "@helloo/memory";
 import { listOpenApprovals, decide } from "@helloo/trust";
-import { converse } from "@helloo/agent";
 import { initiateConnection, listConnections, executeAction } from "@helloo/integrations";
+import { HelloAgent } from "./hello-agent";
 import type { AppEnv } from "@helloo/core";
 
 // apps/api is composition-only: it wires the domain packages to HTTP.
-// Domain behaviour lives in packages/* (auth, memory today; trust, agent,
-// channels as they're built).
-const app = new Hono<{ Bindings: AppEnv }>();
+// Domain behaviour lives in packages/*; the per-user runtime is the HelloAgent DO.
+type Bindings = AppEnv & { HELLO_AGENT: DurableObjectNamespace };
+const app = new Hono<{ Bindings: Bindings }>();
+
+/** The caller's durable agent (one per user). */
+function agentStub(env: Bindings, owner: string): DurableObjectStub {
+  return env.HELLO_AGENT.get(env.HELLO_AGENT.idFromName(owner));
+}
 
 // Reflect the request origin with credentials so the browser client can hold
 // the session cookie. In production, replace with an explicit allowlist.
@@ -115,7 +120,7 @@ app.post("/api/approvals/:id", async (c) => {
   return c.json(result);
 });
 
-// The daily loop: a conversational turn — recall → reason → gate any action → learn.
+// The daily loop runs in the caller's durable agent (recall → reason → gate → learn).
 app.post("/api/converse", async (c) => {
   const owner = await ownerId(c.env, c.req.raw.headers);
   if (!owner) return c.json({ error: "unauthorized" }, 401);
@@ -124,7 +129,29 @@ app.post("/api/converse", async (c) => {
   if (typeof message !== "string" || message.trim().length === 0) {
     return c.json({ error: "message required" }, 400);
   }
-  return c.json(await converse(c.env, owner, message));
+  return agentStub(c.env, owner).fetch("https://hello-agent/turn", {
+    method: "POST",
+    headers: { "content-type": "application/json", "x-owner-id": owner },
+    body: JSON.stringify({ message }),
+  });
+});
+
+// Proactivity: schedule / read the Morning Brief (composed by the agent's DO alarm).
+app.post("/api/brief/schedule", async (c) => {
+  const owner = await ownerId(c.env, c.req.raw.headers);
+  if (!owner) return c.json({ error: "unauthorized" }, 401);
+  return agentStub(c.env, owner).fetch("https://hello-agent/schedule-brief", {
+    method: "POST",
+    headers: { "x-owner-id": owner },
+  });
+});
+
+app.get("/api/brief", async (c) => {
+  const owner = await ownerId(c.env, c.req.raw.headers);
+  if (!owner) return c.json({ error: "unauthorized" }, 401);
+  return agentStub(c.env, owner).fetch("https://hello-agent/last-brief", {
+    headers: { "x-owner-id": owner },
+  });
 });
 
 // Connect a real account (OAuth): { toolkit: "gmail" } -> a redirect URL the user opens.
@@ -145,6 +172,8 @@ app.get("/api/connections", async (c) => {
   if (!owner) return c.json({ error: "unauthorized" }, 401);
   return c.json({ connections: await listConnections(c.env, owner) });
 });
+
+export { HelloAgent };
 
 export default {
   fetch: app.fetch,

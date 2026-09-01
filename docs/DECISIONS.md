@@ -4,6 +4,13 @@
 
 ---
 
+## ADR-0010 — DO runtime: one durable agent per user (HelloAgent)
+**Date:** 2026-09-02 · **Grounded in:** VERSIONS v1 runtime, SYSTEM-MAP §"Agent runtime" · **Status:** accepted · supersedes the "DO deferred" note in ADR-0007
+
+- Built `HelloAgent`, a **plain Durable Object** (SQLite-backed) as the per-user runtime — DO id = `idFromName(ownerId)`, so exactly one per user. `POST /api/converse` now routes through it (`/turn` → `converse`); it also drives **proactivity**: `POST /api/brief/schedule` sets a DO alarm; `alarm()` composes a Morning Brief from memory, stores it, reschedules daily; `GET /api/brief` reads the last one. wrangler: `durable_objects` binding `HELLO_AGENT` + `new_sqlite_classes` migration.
+- **Plain DO, not the Agents SDK (yet):** kept behind our own interface (the DO class) so the Agents SDK can slot in later without rippling — which is exactly the churn-isolation VERSIONS asked for. Durable *memory* stays in Postgres; the DO holds only hot runtime state (owner binding, last brief).
+- **Verified:** the Worker boots with the DO registered (binding + migration OK), health green. converse-through-DO and the alarm-driven brief need Neon to fully run (unverified while Neon is down).
+
 ## ADR-0009 — Neon resilience: retry wrapper + cron warm-up
 **Date:** 2026-09-02 · **Status:** accepted
 

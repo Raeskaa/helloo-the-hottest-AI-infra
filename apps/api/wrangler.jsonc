@@ -9,5 +9,10 @@
   "observability": { "enabled": true },
   // Keep Neon's free-tier compute warm (it suspends after ~5 min idle) so real users
   // don't hit cold-start errors. Runs only in production, not local dev.
-  "triggers": { "crons": ["*/4 * * * *"] }
+  "triggers": { "crons": ["*/4 * * * *"] },
+  // One durable agent per user (the runtime); SQLite-backed DO storage.
+  "durable_objects": {
+    "bindings": [{ "name": "HELLO_AGENT", "class_name": "HelloAgent" }]
+  },
+  "migrations": [{ "tag": "v1", "new_sqlite_classes": ["HelloAgent"] }]
 }
