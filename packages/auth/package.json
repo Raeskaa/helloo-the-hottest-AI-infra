@@ -12,9 +12,10 @@
   "dependencies": {
     "@helloo/core": "workspace:*",
     "@helloo/db": "workspace:*",
-    "better-auth": "^1.3.0"
+    "better-auth": "^1.7.2"
   },
   "devDependencies": {
-    "@better-auth/cli": "^1.3.0"
+    "@better-auth/cli": "^1.4.21",
+    "drizzle-orm": "^0.45.2"
   }
 }
