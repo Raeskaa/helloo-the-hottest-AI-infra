@@ -179,7 +179,12 @@ export async function reconcileSelfTest(env: AppEnv): Promise<ReconcileSelfTestR
 
 export interface RecallSelfTestResult {
   ingested: { extracted: number; added: number; updated: number };
-  queries: Array<{ q: string; top: string | null; score: number | null }>;
+  queries: Array<{
+    q: string;
+    top: string | null;
+    score: number | null;
+    signals: { vectorRank: number | null; keywordRank: number | null } | null;
+  }>;
 }
 
 /**
@@ -204,7 +209,8 @@ export async function recallSelfTest(env: AppEnv): Promise<RecallSelfTestResult>
         "I live in Lyon, I work as a chef, and on weekends I love hiking in the Alps.",
         "selftest",
       );
-      const qs = ["Where does the user live?", "What is the user's job?", "weekend hobbies"];
+      // Mix of semantic-only ("job" ~ chef) and lexical ("Lyon", "chef") queries to exercise both signals.
+      const qs = ["Where does the user live?", "What is the user's job?", "hiking", "chef"];
       const queries: RecallSelfTestResult["queries"] = [];
       for (const q of qs) {
         const hits = await recall(env, ownerA, q, 1);
@@ -212,7 +218,8 @@ export async function recallSelfTest(env: AppEnv): Promise<RecallSelfTestResult>
         queries.push({
           q,
           top: top ? top.atom.factText : null,
-          score: top ? Number(top.score.toFixed(3)) : null,
+          score: top ? Number(top.score.toFixed(4)) : null,
+          signals: top ? top.signals : null,
         });
       }
       return { ingested: { extracted: r.extracted, added: r.added, updated: r.updated }, queries };
