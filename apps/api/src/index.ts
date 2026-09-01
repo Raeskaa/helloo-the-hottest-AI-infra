@@ -3,6 +3,7 @@ import { cors } from "hono/cors";
 import { createAuth } from "@helloo/auth";
 import { ingestText, listMemory, recall } from "@helloo/memory";
 import { listOpenApprovals, decide } from "@helloo/trust";
+import { converse } from "@helloo/agent";
 import type { AppEnv } from "@helloo/core";
 
 // apps/api is composition-only: it wires the domain packages to HTTP.
@@ -100,6 +101,18 @@ app.post("/api/approvals/:id", async (c) => {
     reviewer: owner,
   });
   return c.json(result);
+});
+
+// The daily loop: a conversational turn — recall → reason → gate any action → learn.
+app.post("/api/converse", async (c) => {
+  const owner = await ownerId(c.env, c.req.raw.headers);
+  if (!owner) return c.json({ error: "unauthorized" }, 401);
+  const body = await c.req.json<{ message?: unknown }>().catch(() => null);
+  const message = body?.message;
+  if (typeof message !== "string" || message.trim().length === 0) {
+    return c.json({ error: "message required" }, 400);
+  }
+  return c.json(await converse(c.env, owner, message));
 });
 
 export default app;

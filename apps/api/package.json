@@ -10,6 +10,7 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
+    "@helloo/agent": "workspace:*",
     "@helloo/auth": "workspace:*",
     "@helloo/core": "workspace:*",
     "@helloo/db": "workspace:*",

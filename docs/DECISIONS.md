@@ -4,6 +4,14 @@
 
 ---
 
+## ADR-0007 — Agent loop v1: host-agnostic `converse()`, DO runtime deferred
+**Date:** 2026-09-02 · **Grounded in:** `SYSTEM-MAP.md §3`, VERSIONS v1 runtime · **Status:** accepted
+
+- **Built:** `packages/agent` `converse(env, ownerId, message)` — the daily loop: recall relevant memory → the model answers grounded in it (says "don't know" over inventing) → any proposed action is routed through `trust.gate()` and **never auto-executed** (the tool has no `execute`; the SDK hands the call back, we gate it) → the turn is learned back via `ingestText`. Route `POST /api/converse`. Provider-agnostic via the AI SDK; **model = Gemini `gemini-3.6-flash`** (swap to Claude in one line when an `ANTHROPIC_API_KEY` exists).
+- **Deviation from VERSIONS ("runtime = Durable Object per user"), conscious:** v1 conversation is **stateless** (recall→respond), so the loop runs as host-agnostic domain logic in a Worker route. It **moves into a per-user DO** when we need durable state / alarms / proactivity / streaming — same sequencing as building Memory before the DO. The logic is host-agnostic so the move is mechanical.
+- **Stubbed (needs integrations):** real action *execution*. The gate + approval handshake are real; there's no tool to actually send yet. Lands with Nango/Composio + the tool layer.
+- Proven in-Worker: "Where do I live?" → grounded "You live in Lyon!"; "email priya…" → tool intent → gate → 1 pending approval, nothing sent.
+
 ## ADR-0006 — Trust layer v1: in-process gate + approve-before-act + policy store
 **Date:** 2026-09-02 · **Grounded in:** `HUB-TRUST.md`, `DATA-MODEL.md §5`, VERSIONS v1 · **Status:** accepted
 
