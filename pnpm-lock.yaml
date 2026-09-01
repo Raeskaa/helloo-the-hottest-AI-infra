@@ -64,6 +64,9 @@ importers:
       '@helloo/db':
         specifier: workspace:*
         version: link:../db
+      '@helloo/integrations':
+        specifier: workspace:*
+        version: link:../integrations
       '@helloo/memory':
         specifier: workspace:*
         version: link:../memory

@@ -4,7 +4,7 @@ import { createAuth } from "@helloo/auth";
 import { ingestText, listMemory, recall } from "@helloo/memory";
 import { listOpenApprovals, decide } from "@helloo/trust";
 import { converse } from "@helloo/agent";
-import { initiateConnection, listConnections } from "@helloo/integrations";
+import { initiateConnection, listConnections, executeAction } from "@helloo/integrations";
 import type { AppEnv } from "@helloo/core";
 
 // apps/api is composition-only: it wires the domain packages to HTTP.
@@ -101,6 +101,16 @@ app.post("/api/approvals/:id", async (c) => {
     rationale,
     reviewer: owner,
   });
+  // On approval, execute the action for real (this is the side effect the gate was protecting).
+  if (result.request.status === "allowed") {
+    const execution = await executeAction(
+      c.env,
+      owner,
+      result.request.tool,
+      result.request.args,
+    );
+    return c.json({ ...result, execution });
+  }
   return c.json(result);
 });
 
