@@ -1,5 +1,5 @@
 import { createGoogleGenerativeAI } from "@ai-sdk/google";
-import { generateText, tool } from "ai";
+import { generateText, tool, stepCountIs, type ToolSet } from "ai";
 import { z } from "zod";
 import { recall, ingestText } from "@helloo/memory";
 import { gate, type ProposedAction } from "@helloo/trust";
@@ -7,25 +7,22 @@ import { connectedToolkits, executeAction } from "@helloo/integrations";
 import type { AppEnv } from "@helloo/core";
 
 /**
- * The daily loop (SYSTEM-MAP §3): recall memory → the model answers grounded in it → any
- * action it proposes is routed through the trust gate (never auto-executed) → an allowed
- * action runs via Composio → the turn is learned back into memory. Host-agnostic; moves into
- * a per-user DO when we need durable state (ADR-0007). Provider-agnostic AI SDK (Gemini today).
+ * The daily loop (SYSTEM-MAP §3): recall memory → the model answers grounded in it, reading
+ * from connected accounts when useful → any action it proposes is routed through the trust gate
+ * (read-only runs autonomously & logged; a send is parked for approval, never auto-sent) → the
+ * turn is learned back into memory. Host-agnostic; moves into a per-user DO later (ADR-0007).
  */
 
 export const AGENT_MODEL = "gemini-3.6-flash";
+
+const GMAIL_SEND = "GMAIL_SEND_EMAIL";
+const GMAIL_FETCH = "GMAIL_FETCH_EMAILS";
 
 const emailArgs = z.object({
   to: z.string().describe("recipient email address"),
   subject: z.string(),
   body: z.string(),
 });
-
-/** Map the friendly tool args to the Composio GMAIL_SEND_EMAIL action. */
-const GMAIL_SEND = "GMAIL_SEND_EMAIL";
-function toGmailArgs(a: z.infer<typeof emailArgs>): Record<string, unknown> {
-  return { recipient_email: a.to, subject: a.subject, body: a.body, is_html: false };
-}
 
 export interface RecalledFact {
   factText: string;
@@ -64,31 +61,57 @@ export async function converse(
     hits.map((h) => `- ${h.atom.factText}`).join("\n") || "(nothing remembered yet)";
   const gmailConnected = toolkits.includes("gmail");
 
-  // 2. Reason. The send tool has NO execute — the SDK hands the call back so we gate it.
+  const pendingApprovals: PendingApproval[] = [];
+  const executed: ExecutedAction[] = [];
+
+  // 2. Build tools. Read tools execute autonomously (gated read-only tier); the send tool has
+  //    NO execute, so the SDK returns the call and we gate it for approval.
+  const tools: ToolSet = {};
+  if (gmailConnected) {
+    tools.read_emails = tool({
+      description:
+        "Read the user's most recent emails to answer a question about their inbox. Read-only.",
+      inputSchema: z.object({
+        max_results: z.number().int().min(1).max(10).default(5),
+      }),
+      execute: async ({ max_results }) => {
+        const action: ProposedAction = {
+          tool: GMAIL_FETCH,
+          args: { max_results },
+          actsExternally: false,
+          touchesSensitive: true,
+          readsUntrusted: false,
+          actionClass: "email_read",
+        };
+        const decision = await gate(env, ownerId, action);
+        if (decision.decision !== "allow") return { error: "reading is not permitted" };
+        const res = await executeAction(env, ownerId, GMAIL_FETCH, { max_results });
+        return res.data;
+      },
+    });
+    tools.send_email = tool({
+      description:
+        "Send an email from the user's connected Gmail. Use ONLY when the user clearly asks to send or reply to someone.",
+      inputSchema: emailArgs,
+    });
+  }
+
   const google = createGoogleGenerativeAI({ apiKey: env.GEMINI_API_KEY });
   const result = await generateText({
     model: google(AGENT_MODEL),
     system:
       "You are the user's helloo — their personal AI. Answer using what you remember about them " +
-      "(below) plus general knowledge. If a personal fact isn't in memory, say you don't know it " +
-      "yet rather than inventing it. Be concise and warm.\n\n" +
+      "(below), general knowledge, and their connected accounts when relevant. If a personal fact " +
+      "isn't in memory or their accounts, say you don't know it yet rather than inventing it. " +
+      "Be concise and warm.\n\n" +
       `Connected accounts: ${toolkits.length ? toolkits.join(", ") : "none"}.\n` +
       `What you remember about the user:\n${memoryContext}`,
     prompt: message,
-    tools: gmailConnected
-      ? {
-          send_email: tool({
-            description:
-              "Send an email from the user's connected Gmail. Use ONLY when the user clearly asks to send or reply to someone.",
-            inputSchema: emailArgs,
-          }),
-        }
-      : {},
+    tools,
+    stopWhen: stepCountIs(5),
   });
 
-  // 3. Gate any proposed actions; execute only what a standing policy already allows.
-  const pendingApprovals: PendingApproval[] = [];
-  const executed: ExecutedAction[] = [];
+  // 3. Gate any SEND the model proposed (read tools already ran under the gate).
   for (const call of result.toolCalls) {
     if (call.toolName !== "send_email") continue;
     const parsed = emailArgs.safeParse(call.input);
@@ -97,7 +120,7 @@ export async function converse(
     const summary = `Send email to ${email.to} — "${email.subject}"`;
     const action: ProposedAction = {
       tool: GMAIL_SEND,
-      args: toGmailArgs(email),
+      args: { recipient_email: email.to, subject: email.subject, body: email.body, is_html: false },
       actsExternally: true,
       touchesSensitive: false,
       readsUntrusted: false,
