@@ -40,7 +40,7 @@ if (password) {
 
 await client.query(`GRANT USAGE ON SCHEMA public TO helloo_app`);
 await client.query(
-  `GRANT SELECT, INSERT, UPDATE, DELETE ON TABLE "hello", "atom", "audit", "atom_embedding" TO helloo_app`,
+  `GRANT SELECT, INSERT, UPDATE, DELETE ON TABLE "hello", "atom", "audit", "atom_embedding", "permission_request", "policy" TO helloo_app`,
 );
 await client.query(`GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA public TO helloo_app`);
 // Future membrane tables (created by the owner in migrations) are granted automatically.

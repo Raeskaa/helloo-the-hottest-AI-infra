@@ -50,6 +50,20 @@
       "when": 1788295762454,
       "tag": "0006_atom_fts_index",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1788296670006,
+      "tag": "0007_complex_beyonder",
+      "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1788296670604,
+      "tag": "0008_rls_trust",
+      "breakpoints": true
     }
   ]
 }

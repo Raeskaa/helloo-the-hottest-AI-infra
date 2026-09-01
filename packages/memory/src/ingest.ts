@@ -1,5 +1,5 @@
 import type { AppEnv } from "@helloo/core";
-import { withTenant } from "./db";
+import { withTenant } from "@helloo/db";
 import { currentAtoms, ensureHello, type Atom } from "./repository";
 import { extractFacts } from "./extract";
 import { embedDocuments } from "./embedding";

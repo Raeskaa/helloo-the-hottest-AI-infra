@@ -2,6 +2,7 @@ import { Hono } from "hono";
 import { cors } from "hono/cors";
 import { createAuth } from "@helloo/auth";
 import { ingestText, listMemory, recall } from "@helloo/memory";
+import { listOpenApprovals, decide } from "@helloo/trust";
 import type { AppEnv } from "@helloo/core";
 
 // apps/api is composition-only: it wires the domain packages to HTTP.
@@ -72,6 +73,33 @@ app.get("/api/memory/recall", async (c) => {
   const k = Number.isFinite(kRaw) && kRaw > 0 ? Math.min(Math.floor(kRaw), 50) : 8;
   const hits = await recall(c.env, owner, q, k);
   return c.json({ hits });
+});
+
+// Approvals inbox: consequential actions awaiting the owner's decision.
+app.get("/api/approvals", async (c) => {
+  const owner = await ownerId(c.env, c.req.raw.headers);
+  if (!owner) return c.json({ error: "unauthorized" }, 401);
+  return c.json({ requests: await listOpenApprovals(c.env, owner) });
+});
+
+// Decide one request: { decision: "allow"|"deny", rememberScope?, rationale? }.
+app.post("/api/approvals/:id", async (c) => {
+  const owner = await ownerId(c.env, c.req.raw.headers);
+  if (!owner) return c.json({ error: "unauthorized" }, 401);
+  const body = await c.req.json<{ decision?: unknown; rememberScope?: unknown; rationale?: unknown }>().catch(() => null);
+  const decision = body?.decision;
+  if (decision !== "allow" && decision !== "deny") {
+    return c.json({ error: "decision must be 'allow' or 'deny'" }, 400);
+  }
+  const rememberScope = body?.rememberScope === "always_for" ? "always_for" : "once";
+  const rationale = typeof body?.rationale === "string" ? body.rationale : undefined;
+  const result = await decide(c.env, owner, c.req.param("id"), {
+    decision,
+    rememberScope,
+    rationale,
+    reviewer: owner,
+  });
+  return c.json(result);
 });
 
 export default app;

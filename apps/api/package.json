@@ -14,6 +14,7 @@
     "@helloo/core": "workspace:*",
     "@helloo/db": "workspace:*",
     "@helloo/memory": "workspace:*",
+    "@helloo/trust": "workspace:*",
     "hono": "^4.9.0"
   },
   "devDependencies": {

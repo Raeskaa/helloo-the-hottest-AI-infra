@@ -9,3 +9,5 @@ export function getDb(url: string) {
 
 export type DB = ReturnType<typeof getDb>;
 export * as schema from "./schema";
+export { withTenant, type Tx, type TenantDb } from "./tenant";
+export { ensureHello } from "./hello";

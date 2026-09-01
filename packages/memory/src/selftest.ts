@@ -4,7 +4,7 @@ import { eq } from "drizzle-orm";
 import { schema } from "@helloo/db";
 import { atom } from "@helloo/db/schema";
 import type { AppEnv } from "@helloo/core";
-import { withTenant, type Tx } from "./db";
+import { withTenant, type Tx } from "@helloo/db";
 import { assertAtom, currentAtoms, ensureHello } from "./repository";
 import { ingestText, listMemory } from "./ingest";
 import { reconcileFact } from "./reconcile";

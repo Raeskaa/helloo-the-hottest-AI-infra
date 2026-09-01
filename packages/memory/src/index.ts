@@ -1,4 +1,3 @@
-export { withTenant, type Tx, type MembraneDb } from "./db";
 export {
   ensureHello,
   assertAtom,

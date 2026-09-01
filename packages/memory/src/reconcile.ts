@@ -1,6 +1,6 @@
 import { and, desc, eq, isNull, sql } from "drizzle-orm";
 import { atom, atomEmbedding, type AtomProvenance } from "@helloo/db/schema";
-import type { Tx } from "./db";
+import type { Tx } from "@helloo/db";
 import { assertAtom, type Atom } from "./repository";
 import { EXTRACTION_MODEL, type ExtractedFact } from "./extract";
 import { EMBEDDING_MODEL } from "./embedding";

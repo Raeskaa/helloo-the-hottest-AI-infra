@@ -4,6 +4,13 @@
 
 ---
 
+## ADR-0006 — Trust layer v1: in-process gate + approve-before-act + policy store
+**Date:** 2026-09-02 · **Grounded in:** `HUB-TRUST.md`, `DATA-MODEL.md §5`, VERSIONS v1 · **Status:** accepted
+
+- **Built (the decision/handshake layer):** `packages/trust` — Rule-of-Two + action-tier `gate()` (read-only/internal/reversible → autonomous & logged; external/irreversible/high-risk → gated), the **approve-before-act handshake** (`permission_request` queue keyed by request id → `decide()` → immutable `permission_decision` audit event), and the **shared policy store** (`policy`; "always allow for X" writes it, and `gate` shortcuts future matches). Tables under RLS+FORCE (migrations 0007/0008). This is the same policy store v3 federation autonomy will read.
+- **Deferred to the agent-runtime slice (Q40):** the real isolation boundary — **per-run sandbox + default-deny egress allowlist + scoped OBO tokens** — plus **spend/action caps (counters), kill switch, and reversibility**. HUB-TRUST is explicit that an in-process engine is UX, not a security boundary: the gate decides *whether* to act; the sandbox/egress bound *what a run can reach*. So v1's gate is the first filter, never the only line — it lands with the DO agent runtime + real tools, which don't exist yet.
+- **Also moved to `@helloo/db`:** `withTenant` + `ensureHello` (tenant/identity primitives) so trust needn't depend on memory.
+
 ## ADR-0005 — Recall index: pgvector in Neon + Gemini embeddings
 **Date:** 2026-09-02 · **Closes:** part of Q13/Q37 (retrieval) · **Grounded in:** `HUB-MEMORY.md` read path, `DATA-MODEL.md §4` · **Status:** accepted
 

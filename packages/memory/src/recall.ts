@@ -1,7 +1,7 @@
 import { and, cosineDistance, eq, inArray, isNull, sql } from "drizzle-orm";
 import { atom, atomEmbedding } from "@helloo/db/schema";
 import type { AppEnv } from "@helloo/core";
-import { withTenant, type Tx } from "./db";
+import { withTenant, type Tx } from "@helloo/db";
 import { embedQuery } from "./embedding";
 import type { Atom } from "./repository";
 
