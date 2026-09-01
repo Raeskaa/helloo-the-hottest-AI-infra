@@ -19,6 +19,11 @@ export interface AppEnv {
   RESEND_API_KEY?: string;
   EMAIL_FROM?: string;
 
+  // sms for phone OTP (optional — dev falls back to console). Twilio.
+  TWILIO_ACCOUNT_SID?: string;
+  TWILIO_AUTH_TOKEN?: string;
+  TWILIO_FROM?: string;
+
   // LLM for the memory fact-pipeline (provider-agnostic via the AI SDK; Gemini today).
   GEMINI_API_KEY?: string;
 
