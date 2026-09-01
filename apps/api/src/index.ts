@@ -4,6 +4,7 @@ import { createAuth } from "@helloo/auth";
 import { ingestText, listMemory, recall } from "@helloo/memory";
 import { listOpenApprovals, decide } from "@helloo/trust";
 import { converse } from "@helloo/agent";
+import { initiateConnection, listConnections } from "@helloo/integrations";
 import type { AppEnv } from "@helloo/core";
 
 // apps/api is composition-only: it wires the domain packages to HTTP.
@@ -113,6 +114,25 @@ app.post("/api/converse", async (c) => {
     return c.json({ error: "message required" }, 400);
   }
   return c.json(await converse(c.env, owner, message));
+});
+
+// Connect a real account (OAuth): { toolkit: "gmail" } -> a redirect URL the user opens.
+app.post("/api/connect", async (c) => {
+  const owner = await ownerId(c.env, c.req.raw.headers);
+  if (!owner) return c.json({ error: "unauthorized" }, 401);
+  const body = await c.req.json<{ toolkit?: unknown }>().catch(() => null);
+  const toolkit = body?.toolkit;
+  if (typeof toolkit !== "string" || toolkit.trim().length === 0) {
+    return c.json({ error: "toolkit required (e.g. 'gmail')" }, 400);
+  }
+  return c.json(await initiateConnection(c.env, owner, toolkit));
+});
+
+// The user's connected accounts.
+app.get("/api/connections", async (c) => {
+  const owner = await ownerId(c.env, c.req.raw.headers);
+  if (!owner) return c.json({ error: "unauthorized" }, 401);
+  return c.json({ connections: await listConnections(c.env, owner) });
 });
 
 export default app;

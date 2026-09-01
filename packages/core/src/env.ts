@@ -22,6 +22,9 @@ export interface AppEnv {
   // LLM for the memory fact-pipeline (provider-agnostic via the AI SDK; Gemini today).
   GEMINI_API_KEY?: string;
 
+  // Integrations / tool execution (Composio) — connect + act on the user's real accounts.
+  COMPOSIO_API_KEY?: string;
+
   // social (optional — each provider enables when both keys are present)
   GOOGLE_CLIENT_ID?: string;
   GOOGLE_CLIENT_SECRET?: string;

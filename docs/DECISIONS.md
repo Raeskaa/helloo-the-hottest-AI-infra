@@ -4,6 +4,13 @@
 
 ---
 
+## ADR-0008 — Integrations: Composio (v3 SDK), connection layer first
+**Date:** 2026-09-02 · **Grounded in:** SYSTEM-MAP §"Integrations", VERSIONS v1 · **Status:** accepted
+
+- **`packages/integrations` wraps Composio** (`@composio/core` v0.18, v3 API) — `initiateConnection(ownerId, toolkit)` → OAuth redirect URL (auto get/create a composio-managed auth config, then `connectedAccounts.link`), `listConnections`/`connectedToolkits`, and `executeAction(ownerId, slug, args)` (run only AFTER the gate allows). helloo `ownerId` = Composio external user id. Routes `POST /api/connect`, `GET /api/connections`. **SDK verified on workerd** (returns a real connect URL).
+- **Composio = integrations/execution, not auth** (that's Better Auth) — settles the earlier open question. SYSTEM-MAP's eventual "Nango spine + Composio breadth" is deferred; Composio-only for v1.
+- **Sequenced at the OAuth boundary:** connection layer shipped + verified; **wiring real tools into `converse` (fetch connected tools → gate → `executeAction`) and executing on approval is the next slice** — it needs a user to actually OAuth-connect an account (a browser grant, the user's own action; the prohibited-action rules keep Claude from doing it). Until then `converse` keeps the stubbed `send_email` (gate proven, execution stubbed).
+
 ## ADR-0007 — Agent loop v1: host-agnostic `converse()`, DO runtime deferred
 **Date:** 2026-09-02 · **Grounded in:** `SYSTEM-MAP.md §3`, VERSIONS v1 runtime · **Status:** accepted
 
