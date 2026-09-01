@@ -8,6 +8,20 @@
       "when": 1788279489703,
       "tag": "0000_violet_korath",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1788288658944,
+      "tag": "0001_red_arclight",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1788288895587,
+      "tag": "0002_rls_membrane",
+      "breakpoints": true
     }
   ]
 }

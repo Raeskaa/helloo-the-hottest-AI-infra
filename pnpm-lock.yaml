@@ -74,6 +74,24 @@ importers:
       drizzle-kit:
         specifier: ^0.31.10
         version: 0.31.10
+      pg:
+        specifier: ^8.23.0
+        version: 8.23.0
+
+  packages/memory:
+    dependencies:
+      '@helloo/core':
+        specifier: workspace:*
+        version: link:../core
+      '@helloo/db':
+        specifier: workspace:*
+        version: link:../db
+      '@neondatabase/serverless':
+        specifier: ^1.1.0
+        version: 1.1.0
+      drizzle-orm:
+        specifier: ^0.45.2
+        version: 0.45.2(@neondatabase/serverless@1.1.0)(@prisma/client@5.22.0)(@types/pg@8.23.1)(better-sqlite3@12.11.1)(kysely@0.29.5)(pg@8.23.0)
 
 packages:
 

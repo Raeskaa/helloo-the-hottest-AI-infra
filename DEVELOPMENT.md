@@ -8,9 +8,10 @@ apps/
   web/            (later) the frontend app
 packages/
   auth/           Better Auth config (OTP + magic link + social + organizations)
-  db/             Drizzle schema (generated) + migrations + Postgres client  ← system-of-record + membrane
+  db/             Drizzle schema (auth.ts generated · membrane.ts hand-written) + migrations + clients
   core/           shared types (AppEnv) + config
-  (later)         memory/ · trust/ · agent/ · channels/
+  memory/         membrane record layer — tenant-scoped access (withTenant) + atom/audit repository
+  (later)         trust/ · agent/ · channels/
 docs/  + root .md  the thesis / architecture / research docs
 tooling/          shared tsconfig base
 ```
@@ -30,10 +31,20 @@ cp apps/api/.dev.vars.example apps/api/.dev.vars   # fill DATABASE_URL + BETTER_
 echo "DATABASE_URL=<your neon url>" > .env         # root .env (gitignored) — for db:generate / db:migrate
 ```
 
-**Create the auth tables:**
+**Create the tables:**
 ```bash
-pnpm db:generate     # packages/auth → writes packages/db/src/schema.ts from the auth config
-pnpm db:migrate      # generates + applies the SQL migration to Neon
+pnpm db:generate     # packages/auth → writes packages/db/src/schema/auth.ts from the auth config
+pnpm db:migrate      # generates + applies the SQL migrations to Neon (auth + membrane + RLS)
+```
+
+**Create the membrane's non-owner role** (once per database). Neon's owner role has
+`BYPASSRLS`, so the membrane must connect as a separate role or RLS is silently bypassed
+(ADR-0003):
+```bash
+ADMIN_DATABASE_URL="<owner DIRECT url>" APP_DB_PASSWORD="$(openssl rand -hex 24)" \
+  node packages/db/scripts/create-app-role.mjs
+# then put this in apps/api/.dev.vars (pooled host, helloo_app role):
+#   APP_DATABASE_URL=postgresql://helloo_app:<APP_DB_PASSWORD>@<pooled-host>/<db>?sslmode=require
 ```
 
 **Run the API:**

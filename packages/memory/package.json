@@ -1,21 +1,17 @@
 {
-  "name": "@helloo/auth",
+  "name": "@helloo/memory",
   "version": "0.0.0",
   "private": true,
   "type": "module",
   "exports": { ".": "./src/index.ts" },
   "types": "./src/index.ts",
   "scripts": {
-    "db:generate": "better-auth generate --config ./better-auth.config.ts --output ../db/src/schema/auth.ts -y",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
     "@helloo/core": "workspace:*",
     "@helloo/db": "workspace:*",
-    "better-auth": "^1.7.2"
-  },
-  "devDependencies": {
-    "@better-auth/cli": "^1.4.21",
+    "@neondatabase/serverless": "^1.1.0",
     "drizzle-orm": "^0.45.2"
   }
 }

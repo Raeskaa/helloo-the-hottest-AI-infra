@@ -5,6 +5,7 @@ import { createAuth } from "./src/index";
 
 export const auth = createAuth({
   DATABASE_URL: process.env.DATABASE_URL ?? "",
+  APP_DATABASE_URL: process.env.APP_DATABASE_URL ?? "",
   BETTER_AUTH_URL: process.env.BETTER_AUTH_URL ?? "http://localhost:8787",
   BETTER_AUTH_SECRET: process.env.BETTER_AUTH_SECRET ?? "cli-only-not-a-real-secret",
 });

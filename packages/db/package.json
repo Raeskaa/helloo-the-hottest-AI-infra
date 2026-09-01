@@ -5,7 +5,7 @@
   "type": "module",
   "exports": {
     ".": "./src/index.ts",
-    "./schema": "./src/schema.ts"
+    "./schema": "./src/schema/index.ts"
   },
   "types": "./src/index.ts",
   "scripts": {
@@ -19,6 +19,7 @@
     "drizzle-orm": "^0.45.2"
   },
   "devDependencies": {
-    "drizzle-kit": "^0.31.10"
+    "drizzle-kit": "^0.31.10",
+    "pg": "^8.23.0"
   }
 }

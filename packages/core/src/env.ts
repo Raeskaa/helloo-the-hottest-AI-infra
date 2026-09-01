@@ -7,7 +7,13 @@ export interface AppEnv {
   // core (required)
   BETTER_AUTH_URL: string;
   BETTER_AUTH_SECRET: string;
+  /** Owner/admin Neon connection — used by auth (owns its tables; bypasses RLS). */
   DATABASE_URL: string;
+  /**
+   * Non-owner (`helloo_app`) Neon connection — the ONLY url the membrane uses.
+   * RLS binds because this role lacks BYPASSRLS (ADR-0003). Never the owner url here.
+   */
+  APP_DATABASE_URL: string;
 
   // email (optional — dev falls back to console)
   RESEND_API_KEY?: string;

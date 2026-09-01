@@ -17,8 +17,8 @@
 - `ENABLE` + **`FORCE ROW LEVEL SECURITY`** on every tenant table (force, because the app currently connects as the table owner, who otherwise bypasses RLS).
 - Tenant context set via **`SET LOCAL app.owner_id = <id>`** inside an **interactive transaction** — never session `SET`.
 - Because `SET LOCAL`+query must share one transaction, the **membrane data-path uses the Neon serverless Pool (WebSocket) driver** (`drizzle-orm/neon-serverless`). Auth keeps the stateless **neon-http** driver (works, no RLS-transaction need).
-- **CI must prove** wrong-tenant → 0 rows (membrane below the model, not a where-clause we can forget).
-- **Hardening TODO (not v1-blocking):** connect the runtime as a dedicated **non-owner role** with least-privilege grants instead of `neondb_owner`.
+- **A dedicated non-owner role (`helloo_app`, `NOBYPASSRLS`) is REQUIRED, not optional.** Verified 2026-09-02: Neon's `neondb_owner` has `rolbypassrls = true`, so `FORCE` alone does nothing — the self-test showed a stranger reading another tenant's row until the runtime connected as `helloo_app`. Auth/migrations use the owner url (`DATABASE_URL`); the membrane uses `APP_DATABASE_URL` (the app role) exclusively. Role is provisioned by `packages/db/scripts/create-app-role.mjs` with least-privilege grants on `hello`/`atom`/`audit` (+ default privileges for future membrane tables).
+- **Proven** (`membraneSelfTest`, run in-Worker 2026-09-02): owner writes+reads its atom; a different tenant sees **0 rows** (`isolated: true`). Wire this into CI when CI exists.
 
 ## ADR-0002 — Memory record layer = Option B (versioned bi-temporal table + separate audit)
 **Date:** 2026-09-02 · **Closes:** Q2, Q39 · **Grounded in:** `DATA-MODEL.md` Option B + "How to choose" · **Status:** accepted

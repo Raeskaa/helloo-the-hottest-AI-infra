@@ -5,8 +5,13 @@
 BETTER_AUTH_URL=http://localhost:8787
 # Generate:  openssl rand -base64 32
 BETTER_AUTH_SECRET=
-# Neon Postgres pooled connection string (neon.tech)
+# Neon Postgres pooled connection string (neon.tech) — OWNER role (auth + migrations)
 DATABASE_URL=
+# Non-owner runtime role for the membrane (RLS binds). Create with:
+#   ADMIN_DATABASE_URL=<owner direct url> APP_DB_PASSWORD=$(openssl rand -hex 24) \
+#     node packages/db/scripts/create-app-role.mjs
+# then: postgresql://helloo_app:<APP_DB_PASSWORD>@<pooled-host>/<db>?sslmode=require
+APP_DATABASE_URL=
 
 # --- Email (OTP + magic link). Optional in dev: if blank, codes print to console. ---
 RESEND_API_KEY=
