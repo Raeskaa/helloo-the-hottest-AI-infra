@@ -17,6 +17,9 @@ APP_DATABASE_URL=
 RESEND_API_KEY=
 EMAIL_FROM=helloo <onboarding@resend.dev>
 
+# --- Memory fact-pipeline LLM (Google AI Studio key). Required for /api/memory/ingest. ---
+GEMINI_API_KEY=
+
 # --- Social login (optional — leave a pair blank to disable that provider) ---
 GOOGLE_CLIENT_ID=
 GOOGLE_CLIENT_SECRET=

@@ -19,6 +19,9 @@ export interface AppEnv {
   RESEND_API_KEY?: string;
   EMAIL_FROM?: string;
 
+  // LLM for the memory fact-pipeline (provider-agnostic via the AI SDK; Gemini today).
+  GEMINI_API_KEY?: string;
+
   // social (optional — each provider enables when both keys are present)
   GOOGLE_CLIENT_ID?: string;
   GOOGLE_CLIENT_SECRET?: string;

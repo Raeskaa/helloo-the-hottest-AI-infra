@@ -13,6 +13,7 @@
     "@helloo/auth": "workspace:*",
     "@helloo/core": "workspace:*",
     "@helloo/db": "workspace:*",
+    "@helloo/memory": "workspace:*",
     "hono": "^4.9.0"
   },
   "devDependencies": {

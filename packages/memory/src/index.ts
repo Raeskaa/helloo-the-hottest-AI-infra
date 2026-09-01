@@ -11,4 +11,11 @@ export {
   type AssertAtomInput,
   type AppendAuditInput,
 } from "./repository";
-export { membraneSelfTest, type MembraneSelfTestResult } from "./selftest";
+export { extractFacts, EXTRACTION_MODEL, type ExtractedFact } from "./extract";
+export { ingestText, listMemory, type IngestResult } from "./ingest";
+export {
+  membraneSelfTest,
+  type MembraneSelfTestResult,
+  ingestSelfTest,
+  type IngestSelfTestResult,
+} from "./selftest";

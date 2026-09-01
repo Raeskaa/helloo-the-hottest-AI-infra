@@ -3,8 +3,10 @@ import { drizzle } from "drizzle-orm/neon-serverless";
 import { eq } from "drizzle-orm";
 import { schema } from "@helloo/db";
 import { atom } from "@helloo/db/schema";
+import type { AppEnv } from "@helloo/core";
 import { withTenant, type Tx } from "./db";
 import { assertAtom, currentAtoms, ensureHello } from "./repository";
+import { ingestText, listMemory } from "./ingest";
 
 export interface MembraneSelfTestResult {
   /** Atoms owner A can see after writing one (should be >= 1). */
@@ -66,6 +68,48 @@ export async function membraneSelfTest(
       };
     } finally {
       // Cascade removes the throwaway user's hello + atoms.
+      await sdb.delete(schema.user).where(eq(schema.user.id, ownerA));
+    }
+  } finally {
+    await setupPool.end();
+  }
+}
+
+export interface IngestSelfTestResult {
+  extracted: number;
+  written: number;
+  readBack: Array<{ subject: string; predicate: string; object: unknown; confidence: number }>;
+}
+
+/**
+ * Proves the write path over the WS driver only (Gemini extract -> atoms -> read back),
+ * bypassing auth/neon-http. Creates and cleans up a throwaway user. Dev-only.
+ */
+export async function ingestSelfTest(env: AppEnv, text: string): Promise<IngestSelfTestResult> {
+  const ownerA = `selftest-${crypto.randomUUID()}`;
+  const setupPool = new Pool({ connectionString: env.DATABASE_URL });
+  try {
+    const sdb = drizzle(setupPool, { schema });
+    await sdb.insert(schema.user).values({
+      id: ownerA,
+      name: "ingest-selftest",
+      email: `${ownerA}@selftest.local`,
+      emailVerified: false,
+    });
+    try {
+      const result = await ingestText(env, ownerA, text, "selftest");
+      const readBack = await listMemory(env, ownerA);
+      return {
+        extracted: result.extracted,
+        written: result.atoms.length,
+        readBack: readBack.map((a) => ({
+          subject: a.subject,
+          predicate: a.predicate,
+          object: a.object,
+          confidence: a.confidence,
+        })),
+      };
+    } finally {
       await sdb.delete(schema.user).where(eq(schema.user.id, ownerA));
     }
   } finally {
