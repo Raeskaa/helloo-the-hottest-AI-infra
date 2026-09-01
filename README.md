@@ -102,6 +102,9 @@ We are building the *non-naive* version on purpose. Naive horizontal infra is th
 
 ---
 
+## Code
+- [`app/`](app/) — the app, starting with **auth** (Better Auth + Hono on Cloudflare Workers): passwordless OTP + magic link + social + organizations, users owned in your own Postgres. Setup in [`app/README.md`](app/README.md). Secrets are never committed.
+
 ## Read next
 
 - [`SYSTEM-MAP.md`](SYSTEM-MAP.md) — how helloo works end to end (diagrams), before any new code.
