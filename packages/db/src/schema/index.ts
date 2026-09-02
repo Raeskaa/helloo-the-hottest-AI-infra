@@ -3,3 +3,4 @@
 export * from "./auth";
 export * from "./membrane";
 export * from "./trust";
+export * from "./channels";

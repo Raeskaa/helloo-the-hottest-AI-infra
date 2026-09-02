@@ -1,10 +1,18 @@
 import { Hono } from "hono";
 import { cors } from "hono/cors";
+import { z } from "zod";
 import { pingDb } from "@helloo/db";
 import { createAuth } from "@helloo/auth";
 import { ingestText, listMemory, recall } from "@helloo/memory";
 import { listOpenApprovals, decide } from "@helloo/trust";
 import { initiateConnection, listConnections, executeAction } from "@helloo/integrations";
+import {
+  parseTelegramUpdate,
+  sendTelegramMessage,
+  createPendingLink,
+  confirmLink,
+  resolveOwner,
+} from "@helloo/channels";
 import { HelloAgent } from "./hello-agent";
 import type { AppEnv } from "@helloo/core";
 
@@ -16,6 +24,25 @@ const app = new Hono<{ Bindings: Bindings }>();
 /** The caller's durable agent (one per user). */
 function agentStub(env: Bindings, owner: string): DurableObjectStub {
   return env.HELLO_AGENT.get(env.HELLO_AGENT.idFromName(owner));
+}
+
+const turnReplySchema = z.object({
+  reply: z.string().optional(),
+  pendingApprovals: z.array(z.unknown()).optional(),
+});
+
+/** Run one conversational turn through the owner's DO and return a channel-ready reply string. */
+async function runTurn(env: Bindings, owner: string, message: string): Promise<string> {
+  const res = await agentStub(env, owner).fetch("https://hello-agent/turn", {
+    method: "POST",
+    headers: { "content-type": "application/json", "x-owner-id": owner },
+    body: JSON.stringify({ message }),
+  });
+  const parsed = turnReplySchema.safeParse(await res.json().catch(() => null));
+  if (!parsed.success) return "Sorry — something went wrong.";
+  const reply = parsed.data.reply && parsed.data.reply.length > 0 ? parsed.data.reply : "…";
+  const pending = parsed.data.pendingApprovals?.length ?? 0;
+  return pending > 0 ? `${reply}\n\n(⏳ ${pending} action(s) need your approval in the app.)` : reply;
 }
 
 // Reflect the request origin with credentials so the browser client can hold
@@ -171,6 +198,44 @@ app.get("/api/connections", async (c) => {
   const owner = await ownerId(c.env, c.req.raw.headers);
   if (!owner) return c.json({ error: "unauthorized" }, 401);
   return c.json({ connections: await listConnections(c.env, owner) });
+});
+
+// Reach helloo on Telegram. A signed-in user gets a deep link to bind their chat.
+app.get("/api/channels/telegram/link", async (c) => {
+  const owner = await ownerId(c.env, c.req.raw.headers);
+  if (!owner) return c.json({ error: "unauthorized" }, 401);
+  const code = await createPendingLink(c.env, owner, "telegram");
+  const bot = c.env.TELEGRAM_BOT_USERNAME ?? "your_bot";
+  return c.json({ url: `https://t.me/${bot}?start=${code}` });
+});
+
+// Telegram webhook (Telegram calls this, unauthenticated). Only acts if a bot token is set.
+app.post("/api/channels/telegram/webhook", async (c) => {
+  const token = c.env.TELEGRAM_BOT_TOKEN;
+  if (!token) return c.json({ ok: true });
+  const msg = parseTelegramUpdate(await c.req.json().catch(() => null));
+  if (!msg) return c.json({ ok: true });
+
+  // `/start <code>` from the deep link binds this chat to the owner.
+  if (msg.startPayload) {
+    const linked = await confirmLink(c.env, "telegram", msg.startPayload, msg.chatId);
+    await sendTelegramMessage(
+      token,
+      msg.chatId,
+      linked
+        ? "✅ Linked to your helloo. Message me here anytime."
+        : "That link is invalid or already used — grab a fresh one from the helloo app.",
+    );
+    return c.json({ ok: true });
+  }
+
+  const owner = await resolveOwner(c.env, "telegram", msg.chatId);
+  if (!owner) {
+    await sendTelegramMessage(token, msg.chatId, "Link this chat to your helloo first (open the link from the app).");
+    return c.json({ ok: true });
+  }
+  await sendTelegramMessage(token, msg.chatId, await runTurn(c.env, owner, msg.text));
+  return c.json({ ok: true });
 });
 
 export { HelloAgent };

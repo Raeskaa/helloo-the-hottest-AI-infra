@@ -1,0 +1,15 @@
+{
+  "name": "@helloo/channels",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": { ".": "./src/index.ts" },
+  "types": "./src/index.ts",
+  "scripts": { "typecheck": "tsc --noEmit" },
+  "dependencies": {
+    "@helloo/core": "workspace:*",
+    "@helloo/db": "workspace:*",
+    "drizzle-orm": "^0.45.2",
+    "zod": "^4.5.4"
+  }
+}

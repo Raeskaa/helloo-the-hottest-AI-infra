@@ -4,6 +4,15 @@
 
 ---
 
+## ADR-0011 — Channels: Telegram adapter + channel-identity linking
+**Date:** 2026-09-02 · **Grounded in:** SYSTEM-MAP §"Channel adapters", VERSIONS v1 channels · **Status:** accepted
+
+- **`packages/channels`** — a channel is a thin adapter: normalize inbound → route to the user's agent (DO) → reply. Built the **Telegram** adapter: `parseTelegramUpdate` (zod-validated, untrusted input), `sendTelegramMessage`, and channel-identity linking (`createPendingLink`/`confirmLink`/`resolveOwner`).
+- **Linking** via a new `channel_link` table (`packages/db/schema/channels.ts`, migration 0010): an **identity table with NO RLS** (like the auth tables) — queried by the unauthenticated webhook via the owner connection to resolve *which* owner a chat belongs to. Flow: signed-in user hits `/api/channels/telegram/link` → gets `t.me/<bot>?start=<code>` → `/start <code>` at the bot confirms and binds `chat_id → ownerId`.
+- **Routes:** `GET /api/channels/telegram/link`, `POST /api/channels/telegram/webhook`. The webhook resolves the owner and runs a turn through the DO (`runTurn`), so handoff/continuity works because state lives in the DO, not the channel.
+- **Not WhatsApp** (Meta bans general-purpose bots — see the WhatsApp-ban memory). New channels = new adapters over the same `runTurn`.
+- **Verified:** `parseTelegramUpdate` unit tests pass (start/plain/edge cases); Worker boots with the routes; webhook degrades gracefully with no token. **Live flow needs a bot token (@BotFather) + Neon** (unverified while Neon is down). Prod webhook: `setWebhook` to `/api/channels/telegram/webhook`.
+
 ## ADR-0010 — DO runtime: one durable agent per user (HelloAgent)
 **Date:** 2026-09-02 · **Grounded in:** VERSIONS v1 runtime, SYSTEM-MAP §"Agent runtime" · **Status:** accepted · supersedes the "DO deferred" note in ADR-0007
 

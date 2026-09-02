@@ -23,6 +23,10 @@ GEMINI_API_KEY=
 # --- Integrations (Composio) — connect + act on real accounts (Gmail, Calendar, …). ---
 COMPOSIO_API_KEY=
 
+# --- Channels: Telegram bot (from @BotFather). Set the webhook to /api/channels/telegram/webhook. ---
+TELEGRAM_BOT_TOKEN=
+TELEGRAM_BOT_USERNAME=
+
 # --- Social login (optional — leave a pair blank to disable that provider) ---
 GOOGLE_CLIENT_ID=
 GOOGLE_CLIENT_SECRET=

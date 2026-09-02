@@ -30,6 +30,10 @@ export interface AppEnv {
   // Integrations / tool execution (Composio) — connect + act on the user's real accounts.
   COMPOSIO_API_KEY?: string;
 
+  // Channels (optional). Telegram bot for the "reach helloo on Telegram" adapter.
+  TELEGRAM_BOT_TOKEN?: string;
+  TELEGRAM_BOT_USERNAME?: string;
+
   // social (optional — each provider enables when both keys are present)
   GOOGLE_CLIENT_ID?: string;
   GOOGLE_CLIENT_SECRET?: string;

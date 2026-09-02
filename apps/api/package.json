@@ -12,12 +12,14 @@
   "dependencies": {
     "@helloo/agent": "workspace:*",
     "@helloo/auth": "workspace:*",
+    "@helloo/channels": "workspace:*",
     "@helloo/core": "workspace:*",
     "@helloo/db": "workspace:*",
     "@helloo/integrations": "workspace:*",
     "@helloo/memory": "workspace:*",
     "@helloo/trust": "workspace:*",
-    "hono": "^4.9.0"
+    "hono": "^4.9.0",
+    "zod": "^4.5.4"
   },
   "devDependencies": {
     "wrangler": "^4.0.0"

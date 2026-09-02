@@ -30,6 +30,9 @@ importers:
       '@helloo/auth':
         specifier: workspace:*
         version: link:../../packages/auth
+      '@helloo/channels':
+        specifier: workspace:*
+        version: link:../../packages/channels
       '@helloo/core':
         specifier: workspace:*
         version: link:../../packages/core
@@ -48,6 +51,9 @@ importers:
       hono:
         specifier: ^4.9.0
         version: 4.13.5
+      zod:
+        specifier: ^4.5.4
+        version: 4.5.4
     devDependencies:
       wrangler:
         specifier: ^4.0.0
@@ -104,6 +110,21 @@ importers:
       drizzle-orm:
         specifier: ^0.45.2
         version: 0.45.2(@neondatabase/serverless@1.1.0)(@prisma/client@5.22.0)(@types/pg@8.23.1)(better-sqlite3@12.11.1)(kysely@0.29.5)(pg@8.23.0)
+
+  packages/channels:
+    dependencies:
+      '@helloo/core':
+        specifier: workspace:*
+        version: link:../core
+      '@helloo/db':
+        specifier: workspace:*
+        version: link:../db
+      drizzle-orm:
+        specifier: ^0.45.2
+        version: 0.45.2(@neondatabase/serverless@1.1.0)(@prisma/client@5.22.0)(@types/pg@8.23.1)(better-sqlite3@12.11.1)(kysely@0.29.5)(pg@8.23.0)
+      zod:
+        specifier: ^4.5.4
+        version: 4.5.4
 
   packages/core: {}
 

@@ -71,6 +71,13 @@
       "when": 1788300138709,
       "tag": "0009_lying_leo",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1788343244275,
+      "tag": "0010_colorful_jean_grey",
+      "breakpoints": true
     }
   ]
 }
