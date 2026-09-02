@@ -7,9 +7,10 @@
   "compatibility_date": "2026-01-01",
   "compatibility_flags": ["nodejs_compat"],
   "observability": { "enabled": true },
-  // Keep Neon's free-tier compute warm (it suspends after ~5 min idle) so real users
-  // don't hit cold-start errors. Runs only in production, not local dev.
-  "triggers": { "crons": ["*/4 * * * *"] },
+  // Cron warm-up is intentionally DISABLED on the free tier: keeping Neon awake 24/7 burns
+  // the free monthly compute-hours. We let it auto-sleep and absorb the ~few-second wake with
+  // DB retries (packages/db/retry.ts). Re-enable this if you move to always-on compute:
+  //   "triggers": { "crons": ["*/4 * * * *"] },
   // One durable agent per user (the runtime); SQLite-backed DO storage.
   "durable_objects": {
     "bindings": [{ "name": "HELLO_AGENT", "class_name": "HelloAgent" }]

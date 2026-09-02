@@ -15,8 +15,9 @@ export function isTransientDbError(err: unknown): boolean {
 const sleep = (ms: number): Promise<void> => new Promise((resolve) => setTimeout(resolve, ms));
 const backoff = (attempt: number): number => Math.min(500 * 2 ** attempt, 4000);
 
-/** Run `fn`, retrying transient DB failures with exponential backoff. */
-export async function withDbRetry<T>(fn: () => Promise<T>, retries = 3): Promise<T> {
+/** Run `fn`, retrying transient DB failures with exponential backoff.
+ *  Default budget (~11s over 5 tries) comfortably covers a free-tier compute cold-start. */
+export async function withDbRetry<T>(fn: () => Promise<T>, retries = 5): Promise<T> {
   let lastErr: unknown;
   for (let attempt = 0; attempt <= retries; attempt++) {
     try {
@@ -34,7 +35,7 @@ export async function withDbRetry<T>(fn: () => Promise<T>, retries = 3): Promise
 }
 
 /** A `fetch` for the neon-http driver that retries 5xx and network errors (cold starts). */
-export function makeRetryingFetch(retries = 3): typeof fetch {
+export function makeRetryingFetch(retries = 5): typeof fetch {
   return async (
     input: Parameters<typeof fetch>[0],
     init?: Parameters<typeof fetch>[1],
