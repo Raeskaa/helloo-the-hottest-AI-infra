@@ -221,25 +221,34 @@ app.post("/api/channels/telegram/webhook", async (c) => {
   const msg = parseTelegramUpdate(await c.req.json().catch(() => null));
   if (!msg) return c.json({ ok: true });
 
-  // `/start <code>` from the deep link binds this chat to the owner.
-  if (msg.startPayload) {
-    const linked = await confirmLink(c.env, "telegram", msg.startPayload, msg.chatId);
-    await sendTelegramMessage(
-      token,
-      msg.chatId,
-      linked
-        ? "✅ Linked to your helloo. Message me here anytime."
-        : "That link is invalid or already used — grab a fresh one from the helloo app.",
-    );
-    return c.json({ ok: true });
-  }
-
-  const owner = await resolveOwner(c.env, "telegram", msg.chatId);
-  if (!owner) {
-    await sendTelegramMessage(token, msg.chatId, "Link this chat to your helloo first (open the link from the app).");
-    return c.json({ ok: true });
-  }
-  await sendTelegramMessage(token, msg.chatId, await runTurn(c.env, owner, msg.text));
+  // Ack Telegram immediately and do the (multi-second) turn in the background, so the webhook
+  // never holds the connection open or gets cut off mid-reply. The reply arrives when ready.
+  const env = c.env;
+  c.executionCtx.waitUntil(
+    (async () => {
+      try {
+        if (msg.startPayload) {
+          const linked = await confirmLink(env, "telegram", msg.startPayload, msg.chatId);
+          await sendTelegramMessage(
+            token,
+            msg.chatId,
+            linked
+              ? "✅ Linked to your helloo. Message me here anytime."
+              : "That link is invalid or already used — grab a fresh one from the helloo app.",
+          );
+          return;
+        }
+        const owner = await resolveOwner(env, "telegram", msg.chatId);
+        if (!owner) {
+          await sendTelegramMessage(token, msg.chatId, "Link this chat to your helloo first (open the link from the app).");
+          return;
+        }
+        await sendTelegramMessage(token, msg.chatId, await runTurn(env, owner, msg.text));
+      } catch {
+        await sendTelegramMessage(token, msg.chatId, "Sorry — I hit a snag. Try again in a moment.").catch(() => {});
+      }
+    })(),
+  );
   return c.json({ ok: true });
 });
 
