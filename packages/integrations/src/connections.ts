@@ -1,5 +1,5 @@
 import type { AppEnv } from "@helloo/core";
-import { composioClient } from "./composio";
+import { composioClient, composioUserId } from "./composio";
 
 /** Get an existing composio-managed auth config for a toolkit, or create one. */
 async function getOrCreateAuthConfig(env: AppEnv, toolkit: string): Promise<string> {
@@ -29,7 +29,7 @@ export async function initiateConnection(
 ): Promise<ConnectionLink> {
   const composio = composioClient(env);
   const authConfigId = await getOrCreateAuthConfig(env, toolkit);
-  const link = await composio.connectedAccounts.link(ownerId, authConfigId);
+  const link = await composio.connectedAccounts.link(await composioUserId(env, ownerId), authConfigId);
   if (!link.redirectUrl) {
     throw new Error(`Composio returned no redirect URL for ${toolkit}`);
   }
@@ -45,7 +45,7 @@ export interface Connection {
 /** The user's connected accounts (status ACTIVE ones are usable). */
 export async function listConnections(env: AppEnv, ownerId: string): Promise<Connection[]> {
   const composio = composioClient(env);
-  const res = await composio.connectedAccounts.list({ userIds: [ownerId] });
+  const res = await composio.connectedAccounts.list({ userIds: [await composioUserId(env, ownerId)] });
   return res.items.map((c) => ({
     toolkit: c.toolkit.slug,
     status: c.status,

@@ -12,6 +12,8 @@
   },
   "dependencies": {
     "@composio/core": "^0.18.0",
-    "@helloo/core": "workspace:*"
+    "@helloo/core": "workspace:*",
+    "@helloo/db": "workspace:*",
+    "drizzle-orm": "^0.45.2"
   }
 }

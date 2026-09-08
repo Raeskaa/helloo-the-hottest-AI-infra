@@ -1,5 +1,5 @@
 import type { AppEnv } from "@helloo/core";
-import { composioClient } from "./composio";
+import { composioClient, composioUserId } from "./composio";
 
 export interface ToolResult {
   successful: boolean;
@@ -21,7 +21,7 @@ export async function executeAction(
   const composio = composioClient(env);
   const tool = await composio.tools.getRawComposioToolBySlug(slug);
   const res = await composio.tools.execute(slug, {
-    userId: ownerId,
+    userId: await composioUserId(env, ownerId),
     arguments: args,
     version: tool.version,
   });

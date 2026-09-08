@@ -35,3 +35,20 @@ export const channelLink = pgTable(
 export const channelLinkRelations = relations(channelLink, ({ one }) => ({
   owner: one(user, { fields: [channelLink.ownerId], references: [user.id] }),
 }));
+
+/**
+ * `composio_identity` — maps a helloo owner to the Composio external user id that holds their
+ * connected accounts. Defaults to the owner id; set to a different id to reuse connections made
+ * under a prior identity (e.g. a migrated account). Identity plumbing like channel_link: no RLS.
+ */
+export const composioIdentity = pgTable("composio_identity", {
+  ownerId: text("owner_id")
+    .primaryKey()
+    .references(() => user.id, { onDelete: "cascade" }),
+  composioUserId: text("composio_user_id").notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+});
+
+export const composioIdentityRelations = relations(composioIdentity, ({ one }) => ({
+  owner: one(user, { fields: [composioIdentity.ownerId], references: [user.id] }),
+}));
