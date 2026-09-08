@@ -19,10 +19,13 @@ export interface AppEnv {
   RESEND_API_KEY?: string;
   EMAIL_FROM?: string;
 
-  // sms for phone OTP (optional — dev falls back to console). Twilio.
-  TWILIO_ACCOUNT_SID?: string;
-  TWILIO_AUTH_TOKEN?: string;
-  TWILIO_FROM?: string;
+  // phone OTP over WhatsApp via Kapso (optional — dev falls back to console).
+  // Delivery of the verification code needs an approved WhatsApp *authentication*
+  // template on a production number (sandbox can't send templates).
+  KAPSO_API_KEY?: string;
+  KAPSO_PHONE_NUMBER_ID?: string;
+  KAPSO_OTP_TEMPLATE?: string;
+  KAPSO_OTP_TEMPLATE_LANG?: string;
 
   // LLM for the memory fact-pipeline (provider-agnostic via the AI SDK; Gemini today).
   GEMINI_API_KEY?: string;
@@ -33,6 +36,8 @@ export interface AppEnv {
   // Channels (optional). Telegram bot for the "reach helloo on Telegram" adapter.
   TELEGRAM_BOT_TOKEN?: string;
   TELEGRAM_BOT_USERNAME?: string;
+  /** Shared secret Telegram echoes in X-Telegram-Bot-Api-Secret-Token; rejects forged webhook calls. */
+  TELEGRAM_WEBHOOK_SECRET?: string;
 
   // social (optional — each provider enables when both keys are present)
   GOOGLE_CLIENT_ID?: string;

@@ -213,6 +213,11 @@ app.get("/api/channels/telegram/link", async (c) => {
 app.post("/api/channels/telegram/webhook", async (c) => {
   const token = c.env.TELEGRAM_BOT_TOKEN;
   if (!token) return c.json({ ok: true });
+  // Reject forged calls: once a webhook secret is configured, Telegram echoes it in this header.
+  const expected = c.env.TELEGRAM_WEBHOOK_SECRET;
+  if (expected && c.req.header("X-Telegram-Bot-Api-Secret-Token") !== expected) {
+    return c.json({ ok: true });
+  }
   const msg = parseTelegramUpdate(await c.req.json().catch(() => null));
   if (!msg) return c.json({ ok: true });
 
