@@ -195,37 +195,31 @@ app.post("/api/channels/telegram/webhook", async (c) => {
   const msg = parseTelegramUpdate(await c.req.json().catch(() => null));
   if (!msg) return c.json({ ok: true });
 
-  // Ack Telegram immediately and do the (multi-second) turn in the background, so the webhook
-  // never holds the connection open or gets cut off mid-reply. The reply arrives when ready.
-  const env = c.env;
-  c.executionCtx.waitUntil(
-    (async () => {
-      try {
-        if (msg.startPayload) {
-          const linked = await confirmLink(env, "telegram", msg.startPayload, msg.chatId);
-          await sendTelegramMessage(
-            token,
-            msg.chatId,
-            linked
-              ? "✅ Linked to your helloo. Message me here anytime."
-              : "That link is invalid or already used — grab a fresh one from the helloo app.",
-          );
-          return;
-        }
-        const owner = await resolveOwner(env, "telegram", msg.chatId);
-        if (!owner) {
-          await sendTelegramMessage(token, msg.chatId, "Link this chat to your helloo first (open the link from the app).");
-          return;
-        }
-        await sendTelegramTyping(token, msg.chatId);
-        // Hand off to the DO's durable alarm — it runs the turn and replies itself, so a slow
-        // cold-DB turn can't be cut off here. This background step is just the fast enqueue.
-        await enqueueToAgent(env, owner, msg.chatId, msg.text);
-      } catch {
-        await sendTelegramMessage(token, msg.chatId, "Sorry — I hit a snag. Try again in a moment.").catch(() => {});
-      }
-    })(),
-  );
+  // The must-happen work (resolve owner + enqueue) runs SYNCHRONOUSLY before we ack, so it's on
+  // the request's full budget and can't be cut off. The heavy turn then runs in the DO's durable
+  // alarm and replies itself. (A cold resolveOwner may take a few seconds; Telegram allows it.)
+  try {
+    if (msg.startPayload) {
+      const linked = await confirmLink(c.env, "telegram", msg.startPayload, msg.chatId);
+      await sendTelegramMessage(
+        token,
+        msg.chatId,
+        linked
+          ? "✅ Linked to your helloo. Message me here anytime."
+          : "That link is invalid or already used — grab a fresh one from the helloo app.",
+      );
+      return c.json({ ok: true });
+    }
+    const owner = await resolveOwner(c.env, "telegram", msg.chatId);
+    if (!owner) {
+      await sendTelegramMessage(token, msg.chatId, "Link this chat to your helloo first (open the link from the app).");
+      return c.json({ ok: true });
+    }
+    await enqueueToAgent(c.env, owner, msg.chatId, msg.text);
+    await sendTelegramTyping(token, msg.chatId);
+  } catch {
+    await sendTelegramMessage(token, msg.chatId, "Sorry — I hit a snag. Try again in a moment.").catch(() => {});
+  }
   return c.json({ ok: true });
 });
 
