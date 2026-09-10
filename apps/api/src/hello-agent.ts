@@ -1,6 +1,7 @@
 import { converse } from "@helloo/agent";
 import { ingestText } from "@helloo/memory";
 import { sendTelegramMessage } from "@helloo/channels";
+import { isTransientDbError } from "@helloo/db";
 import type { AppEnv } from "@helloo/core";
 
 /**
@@ -76,29 +77,38 @@ export class HelloAgent {
     return Response.json({ ok: true, owner });
   }
 
-  /** Drain the message queue durably: one turn at a time, replying over the channel. */
+  /**
+   * Process the head of the message queue. One message per invocation: on a transient DB error
+   * (cold Neon) we RETHROW so Cloudflare retries the alarm with backoff — by then the DB is warm.
+   * On success (or a real error) we dequeue and reschedule if more remain.
+   */
   async alarm(): Promise<void> {
     const owner = await this.owner();
     const token = this.env.TELEGRAM_BOT_TOKEN;
     if (!owner || !token) return;
 
-    for (;;) {
-      const queue = (await this.state.storage.get<QueuedMsg[]>("queue")) ?? [];
-      const [msg, ...rest] = queue;
-      if (!msg) break;
-      // Dequeue before processing so an interrupted run can't double-send.
-      await this.state.storage.put("queue", rest);
-      try {
-        const result = await converse(this.env, owner, msg.text);
-        let reply = result.reply;
-        if (result.pendingApprovals.length > 0) {
-          reply += `\n\n(⏳ ${result.pendingApprovals.length} action(s) need your approval in the app.)`;
-        }
-        await sendTelegramMessage(token, msg.chatId, reply);
-        await ingestText(this.env, owner, msg.text).catch(() => {});
-      } catch {
-        await sendTelegramMessage(token, msg.chatId, "Sorry — I hit a snag. Please try again.").catch(() => {});
+    const queue = (await this.state.storage.get<QueuedMsg[]>("queue")) ?? [];
+    const msg = queue[0];
+    if (!msg) return;
+
+    let reply: string;
+    try {
+      const result = await converse(this.env, owner, msg.text);
+      reply = result.reply;
+      if (result.pendingApprovals.length > 0) {
+        reply += `\n\n(⏳ ${result.pendingApprovals.length} action(s) need your approval in the app.)`;
       }
+    } catch (err) {
+      if (isTransientDbError(err)) throw err; // let Cloudflare retry the alarm (DB warming up)
+      reply = "Sorry — I hit a snag. Please try again.";
     }
+
+    await sendTelegramMessage(token, msg.chatId, reply).catch(() => {});
+    await ingestText(this.env, owner, msg.text).catch(() => {});
+
+    const remaining = (await this.state.storage.get<QueuedMsg[]>("queue")) ?? [];
+    remaining.shift();
+    await this.state.storage.put("queue", remaining);
+    if (remaining.length > 0) await this.state.storage.setAlarm(Date.now());
   }
 }
