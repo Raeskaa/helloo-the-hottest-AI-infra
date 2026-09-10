@@ -149,12 +149,18 @@ importers:
       '@composio/core':
         specifier: ^0.18.0
         version: 0.18.0(ws@8.21.0)(zod@4.5.4)
+      '@composio/vercel':
+        specifier: ^0.12.0
+        version: 0.12.0(@composio/core@0.18.0(ws@8.21.0)(zod@4.5.4))(ai@7.0.89(zod@4.5.4))
       '@helloo/core':
         specifier: workspace:*
         version: link:../core
       '@helloo/db':
         specifier: workspace:*
         version: link:../db
+      ai:
+        specifier: ^7.0.89
+        version: 7.0.89(zod@4.5.4)
       drizzle-orm:
         specifier: ^0.45.2
         version: 0.45.2(@neondatabase/serverless@1.1.0)(@prisma/client@5.22.0)(@types/pg@8.23.1)(better-sqlite3@12.11.1)(kysely@0.29.5)(pg@8.23.0)
@@ -561,6 +567,13 @@ packages:
     engines: {node: '>=22.22.3'}
     peerDependencies:
       zod: '>=3.25.76 <5'
+
+  '@composio/vercel@0.12.0':
+    resolution: {integrity: sha512-8bYK1Va8Vi0Qa3hTPCeck+lhTF+ckp10aPI2R4UcWqsXqOztIxs4dy7QINUzit2twqWpwhfurznTmDHpNg4Wtw==}
+    engines: {node: '>=22.22.3'}
+    peerDependencies:
+      '@composio/core': '>=0.10.0 <1.0.0'
+      ai: ^6.0.0 || ^7.0.0
 
   '@cspotcode/source-map-support@0.8.1':
     resolution: {integrity: sha512-IchNf6dN4tHoMFIn/7OE8LWZ19Y6q/67Bmf6vnGREv8RSbBVb9LPJxEcnwrcwX6ixSvaiGoomAUvu4YSxXrVgw==}
@@ -2875,6 +2888,11 @@ snapshots:
   '@composio/json-schema-to-zod@0.3.1(zod@4.5.4)':
     dependencies:
       zod: 4.5.4
+
+  '@composio/vercel@0.12.0(@composio/core@0.18.0(ws@8.21.0)(zod@4.5.4))(ai@7.0.89(zod@4.5.4))':
+    dependencies:
+      '@composio/core': 0.18.0(ws@8.21.0)(zod@4.5.4)
+      ai: 7.0.89(zod@4.5.4)
 
   '@cspotcode/source-map-support@0.8.1':
     dependencies:

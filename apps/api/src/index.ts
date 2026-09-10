@@ -9,6 +9,7 @@ import { initiateConnection, listConnections, executeAction } from "@helloo/inte
 import {
   parseTelegramUpdate,
   sendTelegramMessage,
+  sendTelegramTyping,
   createPendingLink,
   confirmLink,
   resolveOwner,
@@ -156,6 +157,8 @@ app.post("/api/converse", async (c) => {
   if (typeof message !== "string" || message.trim().length === 0) {
     return c.json({ error: "message required" }, 400);
   }
+  // Learn from the turn in the background so it never delays the reply.
+  c.executionCtx.waitUntil(ingestText(c.env, owner, message).catch(() => {}));
   return agentStub(c.env, owner).fetch("https://hello-agent/turn", {
     method: "POST",
     headers: { "content-type": "application/json", "x-owner-id": owner },
@@ -243,7 +246,11 @@ app.post("/api/channels/telegram/webhook", async (c) => {
           await sendTelegramMessage(token, msg.chatId, "Link this chat to your helloo first (open the link from the app).");
           return;
         }
-        await sendTelegramMessage(token, msg.chatId, await runTurn(env, owner, msg.text));
+        await sendTelegramTyping(token, msg.chatId);
+        const reply = await runTurn(env, owner, msg.text);
+        await sendTelegramMessage(token, msg.chatId, reply);
+        // Learn from the message after replying (never delays the answer).
+        await ingestText(env, owner, msg.text).catch(() => {});
       } catch {
         await sendTelegramMessage(token, msg.chatId, "Sorry — I hit a snag. Try again in a moment.").catch(() => {});
       }

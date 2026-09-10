@@ -43,3 +43,12 @@ export async function sendTelegramMessage(
   });
   return res.ok;
 }
+
+/** Show the "typing…" indicator so the user knows helloo is working (best-effort). */
+export async function sendTelegramTyping(botToken: string, chatId: string): Promise<void> {
+  await fetch(`https://api.telegram.org/bot${botToken}/sendChatAction`, {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({ chat_id: chatId, action: "typing" }),
+  }).catch(() => {});
+}

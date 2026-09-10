@@ -7,3 +7,4 @@ export {
   type Connection,
 } from "./connections";
 export { executeAction, type ToolResult } from "./execute";
+export { getComposioAiTools, isWriteTool } from "./tools";
