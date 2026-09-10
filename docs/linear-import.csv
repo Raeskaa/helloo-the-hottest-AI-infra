@@ -1,0 +1,28 @@
+Title,Description,Status,Priority,Labels
+Auth (Better Auth: OTP + magic link + social + org),Email-OTP sign-in + sessions on Neon; verified E2E,Done,High,v1-spine
+Memory: Postgres+RLS membrane + versioned bi-temporal atoms,Non-owner role RLS; provenance; recall,Done,High,v1-spine;memory
+Multi-signal recall (pgvector + FTS via RRF),Gemini embeddings 768d; semantic+keyword fusion,Done,High,v1-spine;memory
+Trust layer: Rule-of-Two gate + approve-before-act + policy store + audit,Reads autonomous; writes gated,Done,High,v1-spine;trust
+Agent loop (converse: recall -> reason -> gate -> learn),Multi-step; provider-agnostic (Gemini via AI SDK),Done,High,v1-spine;agent
+DO runtime (HelloAgent, one per user),SQLite-backed; Morning-Brief alarm scaffold,Done,High,v1-spine;runtime
+Integrations: Composio (Gmail read + gated send),v3 SDK; connect flow,Done,High,v1-spine;integrations
+Channel: Telegram adapter + linking,@kalfiraana_bot; channel_link,Done,High,v1-spine;channels
+Deploy to prod (Cloudflare Workers free + SQLite DOs),Live at helloo-api.getyourbumb.workers.dev,Done,High,ops
+Migrate real memory from old helloo-brain,1044 memories + 80 people -> atoms,Done,Medium,migration;memory
+Wire old Composio connections (composio_identity),Gmail/Calendar/Slack/Drive/Docs/Tasks/Sheets,Done,Medium,integrations
+Dynamic gated multi-toolkit tools (Calendar + Slack + Gmail + Tasks),Reads autonomous; writes gated; flagship complete,Done,High,integrations;agent
+Telegram reliability: process turn in DO alarm (not waitUntil),Robust background processing so replies never drop on cold DB,Todo,Urgent,channels;reliability
+Add Docs + Sheets tools,One line in CURATED map + verify,Todo,Low,integrations
+Connection-permission flow,helloo asks to connect a new app instead of failing,Todo,High,integrations;trust
+People / entity graph + cross-channel identity resolution,Unify one person (Manish) across WhatsApp/email/phones; auto-build contact graph,Todo,High,memory;people
+Import old entities/entity_mentions,From helloo-brain Supabase into the people graph,Todo,Medium,migration;people
+WhatsApp channel via Baileys (user's own account on sandbox),Expose API; different risk than banned Business-API bot,Todo,Medium,channels
+Telephony: agents with phone numbers (call/receive),Buy the pipe; call helloo + agent-initiated calls,Todo,Medium,channels;voice
+helloo-as-MCP-server channel,Reachable inside Claude/ChatGPT,Todo,Low,channels
+Email sign-in on prod (Resend),So real users can log in (OTP only hits Worker logs now),Todo,Medium,auth;ops
+Activate Telegram webhook secret,Set TELEGRAM_WEBHOOK_SECRET + re-setWebhook secret_token,Todo,Medium,security
+Security hardening: egress allowlist + OBO tokens + sandbox (Q40),The real boundary under the gate,Todo,Medium,security
+Memory UI surfaces (inspect/edit/forget, provenance, People view),Design gate; deferred while backend-first,Backlog,Low,ui
+Workspaces / orgs (v2),Multi-tenant; org/shared membrane,Backlog,Low,v2
+Bring-your-own-agent + tool/skill registry (v2),A2A Agent Cards,Backlog,Low,v2
+helloo-ai on-device models (v2),One base + LoRA adapters,Backlog,Low,v2
