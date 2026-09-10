@@ -11,7 +11,7 @@ Deploy to prod (Cloudflare Workers free + SQLite DOs),Live at helloo-api.getyour
 Migrate real memory from old helloo-brain,1044 memories + 80 people -> atoms,Done,Medium,migration;memory
 Wire old Composio connections (composio_identity),Gmail/Calendar/Slack/Drive/Docs/Tasks/Sheets,Done,Medium,integrations
 Dynamic gated multi-toolkit tools (Calendar + Slack + Gmail + Tasks),Reads autonomous; writes gated; flagship complete,Done,High,integrations;agent
-Telegram reliability: process turn in DO alarm (not waitUntil),Robust background processing so replies never drop on cold DB,Todo,Urgent,channels;reliability
+Telegram reliability: fix silent webhook drop (secret_token mismatch),"Root cause: worker required X-Telegram-Bot-Api-Secret-Token but setWebhook had no secret_token, so every real update was rejected in ~4ms. Fixed by re-registering setWebhook with the matching secret_token. Synchronous webhook (~10s/turn) works within Telegram's budget; warm-up cron keeps Neon warm.",Done,Urgent,channels;reliability
 Add Docs + Sheets tools,One line in CURATED map + verify,Todo,Low,integrations
 Connection-permission flow,helloo asks to connect a new app instead of failing,Todo,High,integrations;trust
 People / entity graph + cross-channel identity resolution,Unify one person (Manish) across WhatsApp/email/phones; auto-build contact graph,Todo,High,memory;people
@@ -20,7 +20,7 @@ WhatsApp channel via Baileys (user's own account on sandbox),Expose API; differe
 Telephony: agents with phone numbers (call/receive),Buy the pipe; call helloo + agent-initiated calls,Todo,Medium,channels;voice
 helloo-as-MCP-server channel,Reachable inside Claude/ChatGPT,Todo,Low,channels
 Email sign-in on prod (Resend),So real users can log in (OTP only hits Worker logs now),Todo,Medium,auth;ops
-Activate Telegram webhook secret,Set TELEGRAM_WEBHOOK_SECRET + re-setWebhook secret_token,Todo,Medium,security
+Activate Telegram webhook secret,Set TELEGRAM_WEBHOOK_SECRET + re-setWebhook secret_token,Done,Medium,security
 Security hardening: egress allowlist + OBO tokens + sandbox (Q40),The real boundary under the gate,Todo,Medium,security
 Memory UI surfaces (inspect/edit/forget, provenance, People view),Design gate; deferred while backend-first,Backlog,Low,ui
 Workspaces / orgs (v2),Multi-tenant; org/shared membrane,Backlog,Low,v2

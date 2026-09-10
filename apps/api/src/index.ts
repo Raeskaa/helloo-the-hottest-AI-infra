@@ -206,9 +206,9 @@ app.post("/api/channels/telegram/webhook", async (c) => {
   const msg = parseTelegramUpdate(await c.req.json().catch(() => null));
   if (!msg) return c.json({ ok: true });
 
-  // The must-happen work (resolve owner + enqueue) runs SYNCHRONOUSLY before we ack, so it's on
-  // the request's full budget and can't be cut off. The heavy turn then runs in the DO's durable
-  // alarm and replies itself. (A cold resolveOwner may take a few seconds; Telegram allows it.)
+  // The whole turn runs SYNCHRONOUSLY on the request's budget: Telegram waits up to ~60s and a
+  // turn is ~10s, so there's no need for background/alarm indirection (which is unreliable on the
+  // free plan). A warm-up cron keeps Neon warm so a cold start can't make the turn error.
   try {
     if (msg.startPayload) {
       const linked = await confirmLink(c.env, "telegram", msg.startPayload, msg.chatId);
