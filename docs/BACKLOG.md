@@ -8,7 +8,7 @@
 - **Live in production** (Cloudflare Workers free + SQLite DOs, Neon free). **Real data migrated:** 1,124 memories/people from the old helloo-brain; old Composio connections wired (`composio_identity`).
 
 ## Next up (v1, in order)
-1. **Calendar + Slack + Docs/Tasks/Sheets tools** — wire the already-connected toolkits into `converse` (read = autonomous, write = gated). *Completes the "inbox & calendar chief of staff" flagship.* ← building now
+1. **Calendar + Slack + Docs/Tasks/Sheets tools** — ✅ dynamic gated toolset built (`getComposioAiTools` + gate wrapper): Gmail, Calendar, Slack, Tasks wired; reads autonomous, writes gated. Verified: calendar read returns real events, slack send parks for approval. *Flagship (inbox+calendar) complete.* Docs/Sheets = one line in the `CURATED` map when wanted.
 2. **Connection-permission flow** — when helloo needs a toolkit it isn't connected to, it *asks* (returns a connect link / approval) instead of failing. (v1 Connections + Trust.)
 3. **People / entity graph + cross-channel identity resolution** — extract people/contacts from every channel and **unify one person across surfaces** (e.g. *Manish* = his WhatsApp + emails + phone numbers + WhatsApp contact → one entity). Import the old `entities`/`entity_mentions`; build edges. Auto-build the contact/mailing graph. (v1 People; entity resolution = Q17.)
 4. **Reliability:** faster/typing-indicator on Telegram; make `ingest` async so a turn is one LLM call; keep the free-tier retry posture.
