@@ -1,6 +1,5 @@
 import { Hono } from "hono";
 import { cors } from "hono/cors";
-import { z } from "zod";
 import { pingDb } from "@helloo/db";
 import { createAuth } from "@helloo/auth";
 import { ingestText, listMemory, recall } from "@helloo/memory";
@@ -27,23 +26,13 @@ function agentStub(env: Bindings, owner: string): DurableObjectStub {
   return env.HELLO_AGENT.get(env.HELLO_AGENT.idFromName(owner));
 }
 
-const turnReplySchema = z.object({
-  reply: z.string().optional(),
-  pendingApprovals: z.array(z.unknown()).optional(),
-});
-
-/** Run one conversational turn through the owner's DO and return a channel-ready reply string. */
-async function runTurn(env: Bindings, owner: string, message: string): Promise<string> {
-  const res = await agentStub(env, owner).fetch("https://hello-agent/turn", {
+/** Hand a channel message to the owner's DO for durable background processing (it replies itself). */
+async function enqueueToAgent(env: Bindings, owner: string, chatId: string, text: string): Promise<void> {
+  await agentStub(env, owner).fetch("https://hello-agent/enqueue", {
     method: "POST",
     headers: { "content-type": "application/json", "x-owner-id": owner },
-    body: JSON.stringify({ message }),
+    body: JSON.stringify({ channel: "telegram", chatId, text }),
   });
-  const parsed = turnReplySchema.safeParse(await res.json().catch(() => null));
-  if (!parsed.success) return "Sorry — something went wrong.";
-  const reply = parsed.data.reply && parsed.data.reply.length > 0 ? parsed.data.reply : "…";
-  const pending = parsed.data.pendingApprovals?.length ?? 0;
-  return pending > 0 ? `${reply}\n\n(⏳ ${pending} action(s) need your approval in the app.)` : reply;
 }
 
 // Reflect the request origin with credentials so the browser client can hold
@@ -166,24 +155,6 @@ app.post("/api/converse", async (c) => {
   });
 });
 
-// Proactivity: schedule / read the Morning Brief (composed by the agent's DO alarm).
-app.post("/api/brief/schedule", async (c) => {
-  const owner = await ownerId(c.env, c.req.raw.headers);
-  if (!owner) return c.json({ error: "unauthorized" }, 401);
-  return agentStub(c.env, owner).fetch("https://hello-agent/schedule-brief", {
-    method: "POST",
-    headers: { "x-owner-id": owner },
-  });
-});
-
-app.get("/api/brief", async (c) => {
-  const owner = await ownerId(c.env, c.req.raw.headers);
-  if (!owner) return c.json({ error: "unauthorized" }, 401);
-  return agentStub(c.env, owner).fetch("https://hello-agent/last-brief", {
-    headers: { "x-owner-id": owner },
-  });
-});
-
 // Connect a real account (OAuth): { toolkit: "gmail" } -> a redirect URL the user opens.
 app.post("/api/connect", async (c) => {
   const owner = await ownerId(c.env, c.req.raw.headers);
@@ -247,10 +218,9 @@ app.post("/api/channels/telegram/webhook", async (c) => {
           return;
         }
         await sendTelegramTyping(token, msg.chatId);
-        const reply = await runTurn(env, owner, msg.text);
-        await sendTelegramMessage(token, msg.chatId, reply);
-        // Learn from the message after replying (never delays the answer).
-        await ingestText(env, owner, msg.text).catch(() => {});
+        // Hand off to the DO's durable alarm — it runs the turn and replies itself, so a slow
+        // cold-DB turn can't be cut off here. This background step is just the fast enqueue.
+        await enqueueToAgent(env, owner, msg.chatId, msg.text);
       } catch {
         await sendTelegramMessage(token, msg.chatId, "Sorry — I hit a snag. Try again in a moment.").catch(() => {});
       }
