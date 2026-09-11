@@ -36,6 +36,9 @@ export interface AppEnv {
   // Web search (Tavily) — the agent's web_search tool is enabled when this is set.
   TAVILY_API_KEY?: string;
 
+  // Spend guard: max agent turns per owner per day (default 100 when unset). See trust/limits.
+  DAILY_TURN_CAP?: string;
+
   // Channels (optional). Telegram bot for the "reach helloo on Telegram" adapter.
   TELEGRAM_BOT_TOKEN?: string;
   TELEGRAM_BOT_USERNAME?: string;

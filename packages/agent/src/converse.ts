@@ -3,7 +3,7 @@ import { generateText, stepCountIs, tool, type ToolSet } from "ai";
 import { z } from "zod";
 import { recall, findPeople, resolvePeople } from "@helloo/memory";
 import { scheduleReminder, listReminders, cancelReminder } from "@helloo/scheduler";
-import { gate, type ProposedAction, type RiskLevel } from "@helloo/trust";
+import { gate, recordTurn, turnCap, type ProposedAction, type RiskLevel } from "@helloo/trust";
 import {
   getConnections,
   syncConnections,
@@ -73,6 +73,18 @@ export async function converse(
   message: string,
 ): Promise<ConverseResult> {
   if (!env.GEMINI_API_KEY) throw new Error("GEMINI_API_KEY is required for the agent loop");
+
+  // Spend guard: count this turn and stop if the owner is over their daily cap (fail-open on error,
+  // since the cap is abuse protection, not a critical-path check).
+  const budget = await recordTurn(env, ownerId, turnCap(env)).catch(() => null);
+  if (budget && !budget.allowed) {
+    return {
+      reply: `You've reached today's usage limit (${budget.cap} messages). It resets tomorrow — talk to you then.`,
+      recalled: [],
+      pendingApprovals: [],
+      executed: [],
+    };
+  }
 
   const [hits, conn] = await Promise.all([
     recall(env, ownerId, message, 8),

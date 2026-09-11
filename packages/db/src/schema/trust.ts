@@ -1,5 +1,5 @@
 import { relations } from "drizzle-orm";
-import { pgTable, pgEnum, text, jsonb, timestamp, index } from "drizzle-orm/pg-core";
+import { pgTable, pgEnum, text, integer, jsonb, timestamp, index, primaryKey } from "drizzle-orm/pg-core";
 import { user } from "./auth";
 import { hello } from "./membrane";
 
@@ -75,6 +75,24 @@ export const policy = pgTable(
     createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
   },
   (t) => [index("policy_lookup_idx").on(t.helloId, t.effect)],
+);
+
+/**
+ * `usage_counter` — a per-owner, per-day spend guard: how many agent turns an owner has run today.
+ * Checked before each turn so one runaway/abusive user can't drain the shared free-tier LLM/tool
+ * budget. Counters, not membrane data — owner connection, no RLS, keyed explicitly by owner.
+ */
+export const usageCounter = pgTable(
+  "usage_counter",
+  {
+    ownerId: text("owner_id")
+      .notNull()
+      .references(() => user.id, { onDelete: "cascade" }),
+    day: text("day").notNull(), // "YYYY-MM-DD" (UTC)
+    turns: integer("turns").notNull().default(0),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+  },
+  (t) => [primaryKey({ columns: [t.ownerId, t.day] })],
 );
 
 export const permissionRequestRelations = relations(permissionRequest, ({ one }) => ({
