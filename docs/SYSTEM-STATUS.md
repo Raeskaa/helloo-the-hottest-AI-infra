@@ -125,11 +125,13 @@ Each: **what it is · done (with references) · remaining · what's needed to bu
 
 ### G. Make an agent — user-defined / bring-your-own
 - **What:** the user creates or brings agents, each scoped to some memory/tools/channels.
-- **🔴 Remaining:** entirely. Today there is **one fixed helloo per user**. No user-created agents, no
-  per-agent scoping, no **A2A bring-your-own-agent** (Agent Cards). **This is v2** in `VERSIONS.md`.
-- **Needs:** an `agent` table (owner, name, system prompt, tool scope, memory scope, channel bindings);
-  generalize the DO/`converse` to load an agent config; a registry; for BYO, an A2A/MCP client that inherits
-  channels + memory + trust.
+- **🟡 Built (v1):** **user-defined agents** — `agent` table (RLS: name, persona, optional toolkit scope) +
+  tools `helloo_create_agent` / `list` / `delete` / **`ask_agent`** (delegation). `converse` takes
+  `ConverseOptions {persona, scopeToolkits, isSubAgent}`; a delegated sub-agent runs with the persona +
+  scoped tools, skips the spend cap and management tools, and can't recurse. *Verified: created a 'Recruiter'
+  agent and delegated a draft to it.*
+- **🔴 Remaining:** per-agent **memory scope**; **bring-your-own-agent** (A2A/Agent Cards); an agent
+  **registry**; per-agent channel bindings. **Needs:** an A2A/MCP client that inherits channels + memory + trust.
 
 ### H. Create workflows — "if this, then that", multi-step
 - **What:** automations beyond a single scheduled message.
@@ -199,8 +201,8 @@ size (S/M/L)**.
    WhatsApp/voice each need a persistent host + provider. *size:* **L** (design-gated).
 
 ### Phase 2 — the platform (v2)
-6. **User-made agents + bring-your-own-agent** (G) — `agent` table + scoped runtime + registry + A2A client.
-   *size:* **L**.
+6. 🟡 **User-made agents** (G) — v1 DONE (custom personas + delegation via ask_agent; verified). *remaining:*
+   per-agent memory scope, bring-your-own-agent (A2A), registry. *size (rest):* **M–L**.
 7. 🟡 **Workflow engine** (H) — v1 DONE (email-triggered, agent-executed; verified). *remaining:* more
    triggers (calendar/Slack), typed multi-step DSL, run history, builder UI. *size (rest):* **M**.
 8. **Unified cross-account search** (I) — fan-out + merge. *size:* **M**.

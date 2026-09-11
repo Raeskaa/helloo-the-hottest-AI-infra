@@ -48,6 +48,7 @@ what matters. Reads are automatic; **every write is gated — helloo asks first.
 - **🔎 Web search** — live web/news/research with cited sources ("what's the latest on…", weather, prices). Combines with reminders for a real daily brief.
 - **🔗 helloo as an MCP server** — reach your helloo's memory, people, and web search from **inside Claude / ChatGPT** (read-only for now), via a per-user token.
 - **⚡ Workflows** — "when X happens, do Y": e.g. *"when an email from my landlord arrives, summarise it and tell me."* Event-triggered (new email in v1), runs through the agent, actions still gated.
+- **🧑‍🚀 Custom agents** — make named personas ("a Recruiter that writes cold emails") and delegate to them: *"ask my Recruiter agent to draft an outreach email."* Each is scoped; anything it does is still gated.
 - **🛡️ Trust layer** — approve-before-act on every consequential action, with an audit log. It never moves money or sends silently.
 - **📲 Reachable on Telegram** — the first channel; more coming.
 
