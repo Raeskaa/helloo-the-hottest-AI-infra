@@ -26,6 +26,7 @@ built); everything else lives here, grouped below.
 
 ## Dev
 - [DEVELOPMENT.md](DEVELOPMENT.md) — how to run, migrate, deploy
+- [REFERENCES.md](REFERENCES.md) — external repos/tools we're mining, with "can we use it here?" verdicts
 
 ## Thesis
 - [thesis.html](thesis.html) — the build-in-public thesis page
