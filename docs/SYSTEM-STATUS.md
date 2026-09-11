@@ -162,7 +162,9 @@ Each: **what it is · done (with references) · remaining · what's needed to bu
 
 ### K. Trust & security (cross-cutting, the moat)
 - **✅ Done:** Rule-of-Two **gate**, **approve-before-act** queue, **policy** store, **audit** log; every
-  external write is gated; money/trades never auto-executed. **Spend cap:** per-owner daily turn cap
+  external write is gated; money/trades never auto-executed. **In-chat approval:** the user replies
+  "approve"/"deny" (or "approve all") in Telegram — the webhook decides + executes (no app needed; verified).
+  Connect prompts tell the user to grant ALL permissions. **Spend cap:** per-owner daily turn cap
   (`usage_counter` + `recordTurn`, `DAILY_TURN_CAP`, enforced in `converse`; verified — over-cap turns
   short-circuit with no LLM cost). Telegram webhook secret active.
 - **🔴 Remaining:** **egress allowlist** (default-deny outbound host list — low risk today since no
