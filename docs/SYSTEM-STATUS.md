@@ -85,9 +85,11 @@ Each: **what it is · done (with references) · remaining · what's needed to bu
 
 ### C. MCP connection (helloo *inside* Claude/ChatGPT)
 - **What:** expose helloo's memory + a safe subset of tools as an **MCP server** so other assistants can use it.
-- **🔴 Remaining:** entirely (planned; the horizontal-infra wedge).
-- **Needs:** an MCP server endpoint (tools: recall memory, list/act on connectors behind the gate) + auth
-  (per-user token) + scoping. Runs fine on Workers (HTTP/SSE). Medium build.
+- **🟡 Built (read-only v1):** JSON-RPC MCP endpoint `/api/mcp/:token` exposing `recall_memory`, `find_person`,
+  `web_search`; per-user token (`mcp_token` table); `POST /api/channels/mcp/token` mints the URL. *Verified:
+  handshake + tools/list + tool calls + 401 on bad token.*
+- **🔴 Remaining:** exposing **gated write tools** over MCP (behind the trust gate); OAuth (vs path token); a
+  UI/CLI to fetch the token; SSE streaming. **Needs:** token-issuing surface for real users; write-tool bridge.
 
 ### D. Connectors (connect & act on real accounts)
 - **What:** the user's external accounts helloo can read/act on.
@@ -184,8 +186,8 @@ size (S/M/L)**.
    list/switch/label tools. *(Follow-ups: per-call account choice, perf pass, more toolkits.)*
 2. 🟡 **People-graph auto-fill** (J) — Gmail source DONE (`helloo_import_contacts`, verified 80→93 people,
    0→13 email identities). *remaining:* Slack/phone sources, service-vs-person filtering, auto-on-read. *size (rest):* **S–M**.
-3. **MCP-as-a-channel** (C) — *now the top not-started Phase-1 item.* *why:* the horizontal-infra wedge; reach helloo inside Claude/ChatGPT.
-   *needs:* MCP server endpoint (recall + gated tools) + per-user token. *size:* **M**.
+3. 🟡 **MCP-as-a-channel** (C) — read-only server DONE (`/api/mcp/:token`: recall_memory, find_person, web_search;
+   verified). *remaining:* gated writes over MCP, OAuth, a token UI. *size (rest):* **S–M**.
 4. **Security hardening basics** (K) — *why:* the real boundary under the gate before wider use.
    *needs:* egress allowlist + spend caps. *size:* **M**.
 5. **Web chat UI + one more channel** (B) — *why:* not everyone is on Telegram. *needs:* design gate for UI;

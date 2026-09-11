@@ -46,6 +46,7 @@ what matters. Reads are automatic; **every write is gated — helloo asks first.
 - **🆕 Sign up from inside the chat** — a brand-new person messages the bot → it asks their email → helloo emails a code (real delivery via a verified domain) → verifies → creates their account and links the chat, no web step.
 - **⏰ Proactive reminders & briefs** — helloo can message you *first*: one-off reminders or recurring (daily/weekly) briefs, delivered on a schedule. Ask "remind me at 8am to…" or "every morning summarise my day." *(The first thing that isn't reply-only.)*
 - **🔎 Web search** — live web/news/research with cited sources ("what's the latest on…", weather, prices). Combines with reminders for a real daily brief.
+- **🔗 helloo as an MCP server** — reach your helloo's memory, people, and web search from **inside Claude / ChatGPT** (read-only for now), via a per-user token.
 - **🛡️ Trust layer** — approve-before-act on every consequential action, with an audit log. It never moves money or sends silently.
 - **📲 Reachable on Telegram** — the first channel; more coming.
 
