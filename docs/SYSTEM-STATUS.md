@@ -85,11 +85,12 @@ Each: **what it is · done (with references) · remaining · what's needed to bu
 
 ### C. MCP connection (helloo *inside* Claude/ChatGPT)
 - **What:** expose helloo's memory + a safe subset of tools as an **MCP server** so other assistants can use it.
-- **🟡 Built (read-only v1):** JSON-RPC MCP endpoint `/api/mcp/:token` exposing `recall_memory`, `find_person`,
-  `web_search`; per-user token (`mcp_token` table); `POST /api/channels/mcp/token` mints the URL. *Verified:
-  handshake + tools/list + tool calls + 401 on bad token.*
-- **🔴 Remaining:** exposing **gated write tools** over MCP (behind the trust gate); OAuth (vs path token); a
-  UI/CLI to fetch the token; SSE streaming. **Needs:** token-issuing surface for real users; write-tool bridge.
+- **🟡 Built:** JSON-RPC MCP endpoint `/api/mcp/:token` exposing `recall_memory`, `find_person`, `web_search`,
+  and **`helloo_do`** (runs a full agent turn from the MCP client — reads run, **writes are gated** for the
+  user's approval; the trust model spans MCP). Per-user token (`mcp_token`); `POST /api/channels/mcp/token`
+  mints the URL. *Verified: handshake, tools/list, read + action calls (a send-email task queued an approval,
+  a create-workflow task ran), 401 on bad token.*
+- **🔴 Remaining:** OAuth (vs path token); a UI/CLI to fetch/revoke the token; SSE streaming.
 
 ### D. Connectors (connect & act on real accounts)
 - **What:** the user's external accounts helloo can read/act on.
