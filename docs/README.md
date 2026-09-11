@@ -3,6 +3,9 @@
 Working docs for the helloo platform. The repo root keeps only the `README.md` (the thesis + what's
 built); everything else lives here, grouped below.
 
+**Start here:** [SYSTEM-STATUS.md](SYSTEM-STATUS.md) — the living map of the whole system: every part,
+what's built (with references), what's left, what each piece needs, and the sequenced build plan.
+
 ## Product
 - [PRD.md](PRD.md) — product requirements + positioning/language guide
 - [USE-CASES.md](USE-CASES.md) — the jobs helloo does
