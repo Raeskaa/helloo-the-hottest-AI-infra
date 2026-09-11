@@ -33,6 +33,9 @@ export interface AppEnv {
   // Integrations / tool execution (Composio) — connect + act on the user's real accounts.
   COMPOSIO_API_KEY?: string;
 
+  // Web search (Tavily) — the agent's web_search tool is enabled when this is set.
+  TAVILY_API_KEY?: string;
+
   // Channels (optional). Telegram bot for the "reach helloo on Telegram" adapter.
   TELEGRAM_BOT_TOKEN?: string;
   TELEGRAM_BOT_USERNAME?: string;

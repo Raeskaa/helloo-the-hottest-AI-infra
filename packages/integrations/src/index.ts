@@ -13,3 +13,4 @@ export {
   SUPPORTED_TOOLKITS,
   TOOLKIT_LABELS,
 } from "./tools";
+export { webSearch, type WebSearchResult, type WebSearchResponse } from "./websearch";

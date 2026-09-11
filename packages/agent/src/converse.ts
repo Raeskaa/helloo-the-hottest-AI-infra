@@ -10,6 +10,7 @@ import {
   getComposioAiTools,
   initiateConnection,
   isWriteTool,
+  webSearch,
   SUPPORTED_TOOLKITS,
   TOOLKIT_LABELS,
 } from "@helloo/integrations";
@@ -174,6 +175,25 @@ export async function converse(
     execute: async ({ id }) => ({ cancelled: await cancelReminder(env, ownerId, id) }),
   });
 
+  // Web search (Tavily) — only when configured. The read primitive behind "what's the latest on…",
+  // news, research, and the daily brief.
+  if (env.TAVILY_API_KEY) {
+    tools.web_search = tool({
+      description:
+        "Search the live web for current information — news, facts, prices, research, anything not " +
+        "in the user's memory or accounts. Returns a synthesised answer plus source links. Use it " +
+        "whenever the user asks about the outside world or recent events, and cite the sources.",
+      inputSchema: z.object({
+        query: z.string().describe("The search query"),
+        maxResults: z.number().int().min(1).max(10).optional().describe("How many sources (default 5)"),
+      }),
+      execute: async ({ query, maxResults }) => {
+        const r = await webSearch(env, query, maxResults ?? 5);
+        return { answer: r.answer, results: r.results };
+      },
+    });
+  }
+
   const connectedLabels = toolkits.map((t) => TOOLKIT_LABELS[t] ?? t);
   const connectableLabels = connectable.map((t) => TOOLKIT_LABELS[t] ?? t);
 
@@ -186,10 +206,12 @@ export async function converse(
       "GROUNDING: Answer from what you remember about them (below), their connected accounts (via " +
       "tools), and general knowledge. If a personal fact isn't in memory or an account, say you " +
       "don't know it yet — never invent names, numbers, dates, or events.\n\n" +
-      "READS run automatically (fetching email, listing events, reading Slack, looking up people). " +
-      "Use them before answering questions about the user's accounts or contacts rather than " +
-      "guessing. To find someone's email/handle, use helloo_find_person. For Slack, resolve a " +
-      "channel or person to an id first (find channels / find users), then read history or search.\n\n" +
+      "READS run automatically (fetching email, listing events, reading Slack, looking up people, " +
+      "searching the web). Use them before answering questions about the user's accounts, contacts, " +
+      "or the outside world rather than guessing. For anything current/external (news, facts, prices, " +
+      "research) use web_search and cite sources. To find someone's email/handle, use helloo_find_person. " +
+      "For Slack, resolve a channel or person to an id first (find channels / find users), then read " +
+      "history or search.\n\n" +
       "WRITES (send/reply, create/update/delete an event, post to Slack, add a task) are never done " +
       "silently: call the tool and it is queued for the user's approval. Tell them it's waiting for " +
       "their approval — do NOT claim it's done or sent.\n\n" +
