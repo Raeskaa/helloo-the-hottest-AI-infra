@@ -17,3 +17,4 @@ export {
   type OnboardingState,
 } from "./onboarding";
 export { createMcpToken, resolveMcpOwner } from "./mcp";
+export { loadHistory, saveHistory, type ChatTurn } from "./history";

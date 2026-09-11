@@ -1,9 +1,9 @@
 import { Hono } from "hono";
 import { cors } from "hono/cors";
-import { z } from "zod";
 import { pingDb } from "@helloo/db";
 import { createAuth } from "@helloo/auth";
 import { ingestText, listMemory, recall } from "@helloo/memory";
+import { converse, type ConverseResult, type HistoryMessage } from "@helloo/agent";
 import { listOpenApprovals, decide } from "@helloo/trust";
 import { initiateConnection, listConnections, executeAction } from "@helloo/integrations";
 import { dueReminders, advanceReminder, activeEmailWorkflows, markWorkflowSeen } from "@helloo/scheduler";
@@ -24,42 +24,38 @@ import {
   extractOtp,
   createMcpToken,
   resolveMcpOwner,
+  loadHistory,
+  saveHistory,
 } from "@helloo/channels";
 import { handleMcpMessage } from "./mcp";
-import { HelloAgent } from "./hello-agent";
 import type { AppEnv } from "@helloo/core";
 
-// apps/api is composition-only: it wires the domain packages to HTTP.
-// Domain behaviour lives in packages/*; the per-user runtime is the HelloAgent DO.
-type Bindings = AppEnv & { HELLO_AGENT: DurableObjectNamespace };
+// apps/api is composition-only: it wires the domain packages to HTTP. Turns run `converse` directly
+// here (the vestigial per-user Durable Object was removed — converse is stateless; short-term chat
+// context lives in `chat_session`, long-term in Postgres).
+type Bindings = AppEnv;
 const app = new Hono<{ Bindings: Bindings }>();
 
-/** The caller's durable agent (one per user). */
-function agentStub(env: Bindings, owner: string): DurableObjectStub {
-  return env.HELLO_AGENT.get(env.HELLO_AGENT.idFromName(owner));
-}
+const HISTORY_LIMIT = 8;
 
-const turnReplySchema = z.object({
-  reply: z.string().optional(),
-  pendingApprovals: z.array(z.unknown()).optional(),
-});
-
-/** Run one turn through the owner's DO and return a channel-ready reply string. */
-async function runTurn(env: Bindings, owner: string, message: string): Promise<string> {
-  const res = await agentStub(env, owner).fetch("https://hello-agent/turn", {
-    method: "POST",
-    headers: { "content-type": "application/json", "x-owner-id": owner },
-    body: JSON.stringify({ message }),
-  });
-  const parsed = turnReplySchema.safeParse(await res.json().catch(() => null));
-  if (!parsed.success) return "Sorry — something went wrong.";
-  const reply = parsed.data.reply && parsed.data.reply.length > 0 ? parsed.data.reply : "…";
-  const pending = parsed.data.pendingApprovals?.length ?? 0;
+/** Format a converse result into a channel-ready reply, with the in-chat approval hint. */
+function formatReply(result: ConverseResult): string {
+  const reply = result.reply && result.reply.length > 0 ? result.reply : "…";
+  const pending = result.pendingApprovals.length;
   if (pending > 0) {
     const it = pending === 1 ? "it" : `them (say "approve all")`;
     return `${reply}\n\n⏳ ${pending} action(s) waiting — reply "approve" to do ${it}, or "deny" to skip.`;
   }
   return reply;
+}
+
+/** Run one turn (no conversation history — used by the cron for reminders/workflows). */
+async function runTurn(env: Bindings, owner: string, message: string): Promise<string> {
+  try {
+    return formatReply(await converse(env, owner, message));
+  } catch {
+    return "Sorry — something went wrong.";
+  }
 }
 
 /** Approve/deny the pending action(s) straight from the chat (no app needed). Returns whether it handled the message. */
@@ -288,7 +284,7 @@ app.post("/api/approvals/:id", async (c) => {
   return c.json(result);
 });
 
-// The daily loop runs in the caller's durable agent (recall → reason → gate → learn).
+// The daily loop (recall → reason → gate → learn), run in the Worker.
 app.post("/api/converse", async (c) => {
   const owner = await ownerId(c.env, c.req.raw.headers);
   if (!owner) return c.json({ error: "unauthorized" }, 401);
@@ -299,11 +295,7 @@ app.post("/api/converse", async (c) => {
   }
   // Learn from the turn in the background so it never delays the reply.
   c.executionCtx.waitUntil(ingestText(c.env, owner, message).catch(() => {}));
-  return agentStub(c.env, owner).fetch("https://hello-agent/turn", {
-    method: "POST",
-    headers: { "content-type": "application/json", "x-owner-id": owner },
-    body: JSON.stringify({ message }),
-  });
+  return c.json(await converse(c.env, owner, message));
 });
 
 // Connect a real account (OAuth): { toolkit: "gmail" } -> a redirect URL the user opens.
@@ -372,10 +364,17 @@ app.post("/api/channels/telegram/webhook", async (c) => {
       return c.json({ ok: true });
     }
     // Run the turn synchronously on the request's full budget (Telegram waits up to ~60s), then
-    // reply. Learning happens in the background so it never delays the answer.
+    // reply. Short-term history gives follow-ups context; learning happens in the background.
     await sendTelegramTyping(token, msg.chatId);
-    const reply = await runTurn(c.env, owner, msg.text);
-    await sendTelegramMessage(token, msg.chatId, reply);
+    const history = await loadHistory(c.env, "telegram", msg.chatId).catch((): HistoryMessage[] => []);
+    const result = await converse(c.env, owner, msg.text, { history });
+    await sendTelegramMessage(token, msg.chatId, formatReply(result));
+    const updated = [
+      ...history,
+      { role: "user" as const, text: msg.text },
+      { role: "assistant" as const, text: result.reply },
+    ].slice(-HISTORY_LIMIT);
+    await saveHistory(c.env, "telegram", msg.chatId, owner, updated).catch(() => {});
     c.executionCtx.waitUntil(ingestText(c.env, owner, msg.text).catch(() => {}));
   } catch {
     await sendTelegramMessage(token, msg.chatId, "Sorry — I hit a snag. Try again in a moment.").catch(() => {});
@@ -503,8 +502,6 @@ async function runEmailWorkflows(env: Bindings): Promise<void> {
     }
   }
 }
-
-export { HelloAgent };
 
 export default {
   fetch: app.fetch,

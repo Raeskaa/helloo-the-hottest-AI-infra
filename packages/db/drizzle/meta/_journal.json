@@ -169,6 +169,13 @@
       "when": 1789157153487,
       "tag": "0023_rls_agent",
       "breakpoints": true
+    },
+    {
+      "idx": 24,
+      "version": "7",
+      "when": 1789160953143,
+      "tag": "0024_chat_session",
+      "breakpoints": true
     }
   ]
 }

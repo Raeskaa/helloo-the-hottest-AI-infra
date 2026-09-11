@@ -1,5 +1,5 @@
 import { relations, sql } from "drizzle-orm";
-import { pgTable, text, boolean, timestamp, index, uniqueIndex } from "drizzle-orm/pg-core";
+import { pgTable, text, boolean, jsonb, timestamp, index, uniqueIndex } from "drizzle-orm/pg-core";
 import { user } from "./auth";
 
 /**
@@ -52,6 +52,26 @@ export const composioIdentity = pgTable("composio_identity", {
 export const composioIdentityRelations = relations(composioIdentity, ({ one }) => ({
   owner: one(user, { fields: [composioIdentity.ownerId], references: [user.id] }),
 }));
+
+/**
+ * `chat_session` — short-term conversational context per channel chat (the last few turns), so
+ * follow-ups have context. Replaces the Durable Object's storage after the DO was removed; keyed by
+ * (channel, external_id). Identity plumbing: owner connection, no RLS. `messages` holds the recent
+ * {role, text} turns, trimmed by the caller.
+ */
+export const chatSession = pgTable(
+  "chat_session",
+  {
+    channel: text("channel").notNull(),
+    externalId: text("external_id").notNull(),
+    ownerId: text("owner_id")
+      .notNull()
+      .references(() => user.id, { onDelete: "cascade" }),
+    messages: jsonb("messages").$type<{ role: "user" | "assistant"; text: string }[]>().notNull().default(sql`'[]'::jsonb`),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+  },
+  (t) => [uniqueIndex("chat_session_identity_uidx").on(t.channel, t.externalId)],
+);
 
 /**
  * `mcp_token` — a per-user bearer token that lets an MCP client (Claude / ChatGPT / any) reach the

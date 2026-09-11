@@ -12,9 +12,10 @@
   // warm uses free compute-hours; if the monthly allowance runs out, widen the interval or move
   // to always-on compute.)
   "triggers": { "crons": ["*/3 * * * *"] },
-  // One durable agent per user (the runtime); SQLite-backed DO storage.
-  "durable_objects": {
-    "bindings": [{ "name": "HELLO_AGENT", "class_name": "HelloAgent" }]
-  },
-  "migrations": [{ "tag": "v1", "new_sqlite_classes": ["HelloAgent"] }]
+  // The HelloAgent Durable Object was removed — turns run `converse` directly in the Worker
+  // (it's stateless; short-term chat context lives in `chat_session`). v2 deletes the class.
+  "migrations": [
+    { "tag": "v1", "new_sqlite_classes": ["HelloAgent"] },
+    { "tag": "v2", "deleted_classes": ["HelloAgent"] }
+  ]
 }
