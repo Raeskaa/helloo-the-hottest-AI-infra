@@ -22,7 +22,10 @@ import {
   bindChannel,
   looksLikeEmail,
   extractOtp,
+  createMcpToken,
+  resolveMcpOwner,
 } from "@helloo/channels";
+import { handleMcpMessage } from "./mcp";
 import { HelloAgent } from "./hello-agent";
 import type { AppEnv } from "@helloo/core";
 
@@ -355,6 +358,36 @@ async function runDueReminders(env: Bindings): Promise<void> {
     await advanceReminder(env, r, now).catch(() => {});
   }
 }
+
+// Mint an MCP token so the signed-in user can reach their helloo from Claude/ChatGPT (as an MCP server).
+app.post("/api/channels/mcp/token", async (c) => {
+  const owner = await ownerId(c.env, c.req.raw.headers);
+  if (!owner) return c.json({ error: "unauthorized" }, 401);
+  const body = await c.req.json<{ label?: unknown }>().catch(() => null);
+  const label = typeof body?.label === "string" ? body.label : undefined;
+  const token = await createMcpToken(c.env, owner, label);
+  return c.json({ token, url: `${new URL(c.req.url).origin}/api/mcp/${token}` });
+});
+
+// The MCP endpoint (Streamable HTTP, JSON responses). The path token IS the credential. Read-only.
+app.post("/api/mcp/:token", async (c) => {
+  const owner = await resolveMcpOwner(c.env, c.req.param("token"));
+  if (!owner) return c.json({ jsonrpc: "2.0", id: null, error: { code: -32001, message: "invalid token" } }, 401);
+  const body = await c.req.json().catch(() => null);
+  if (Array.isArray(body)) {
+    const out = [];
+    for (const msg of body) {
+      const r = await handleMcpMessage(c.env, owner, msg);
+      if (r) out.push(r);
+    }
+    return out.length > 0 ? c.json(out) : c.body(null, 202);
+  }
+  const res = await handleMcpMessage(c.env, owner, body);
+  return res ? c.json(res) : c.body(null, 202);
+});
+
+// We don't offer a server-initiated SSE stream; tell clients POST-only (MCP spec allows 405 here).
+app.get("/api/mcp/:token", (c) => c.body(null, 405, { Allow: "POST" }));
 
 export { HelloAgent };
 

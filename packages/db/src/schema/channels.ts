@@ -54,6 +54,29 @@ export const composioIdentityRelations = relations(composioIdentity, ({ one }) =
 }));
 
 /**
+ * `mcp_token` — a per-user bearer token that lets an MCP client (Claude / ChatGPT / any) reach the
+ * user's helloo as an MCP server. The token is the credential in the MCP endpoint URL; it maps to an
+ * owner. Identity plumbing: owner connection, no RLS.
+ */
+export const mcpToken = pgTable(
+  "mcp_token",
+  {
+    token: text("token").primaryKey(),
+    ownerId: text("owner_id")
+      .notNull()
+      .references(() => user.id, { onDelete: "cascade" }),
+    label: text("label"),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+    lastUsedAt: timestamp("last_used_at", { withTimezone: true }),
+  },
+  (t) => [index("mcp_token_owner_idx").on(t.ownerId)],
+);
+
+export const mcpTokenRelations = relations(mcpToken, ({ one }) => ({
+  owner: one(user, { fields: [mcpToken.ownerId], references: [user.id] }),
+}));
+
+/**
  * `connection` — one connected external account (a specific Composio connected account) for an owner.
  * A user can connect SEVERAL accounts of the same toolkit (e.g. 4 Google accounts); each is a row, and
  * exactly one per toolkit is `is_default`. Tool execution routes to a toolkit's default account (via
