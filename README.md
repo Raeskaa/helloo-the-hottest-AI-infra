@@ -43,7 +43,7 @@ what matters. Reads are automatic; **every write is gated — helloo asks first.
 - **🧠 Memory you own** — remembers facts, preferences, routines; recall grounded in *your* membrane, correctable and private (RLS-isolated).
 - **👥 People** — look someone up by name/email/handle and get how to reach them (contact graph, filling in).
 - **🔌 Connect from chat** — when helloo needs an account it isn't on, it hands you a link to authorize (and reconnects expired ones).
-- **🆕 Sign up from inside the chat** — a brand-new person messages the bot → it asks their email → sends a code → verifies → creates their account and links the chat, no web step. *(Code delivery needs the email key set in prod to actually send; the flow itself is live.)*
+- **🆕 Sign up from inside the chat** — a brand-new person messages the bot → it asks their email → helloo emails a code (real delivery via a verified domain) → verifies → creates their account and links the chat, no web step.
 - **⏰ Proactive reminders & briefs** — helloo can message you *first*: one-off reminders or recurring (daily/weekly) briefs, delivered on a schedule. Ask "remind me at 8am to…" or "every morning summarise my day." *(The first thing that isn't reply-only.)*
 - **🔎 Web search** — live web/news/research with cited sources ("what's the latest on…", weather, prices). Combines with reminders for a real daily brief.
 - **🛡️ Trust layer** — approve-before-act on every consequential action, with an audit log. It never moves money or sends silently.
