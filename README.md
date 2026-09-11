@@ -30,6 +30,39 @@ Not a chatbot with a nicer personality. Not a memory feature. Not a walled-garde
 
 ---
 
+## What helloo can do today
+
+Live in production — message the Telegram bot and it recalls what it knows, acts across your connected
+accounts (reads run on their own; anything that sends or changes waits for your approval), and remembers
+what matters. Reads are automatic; **every write is gated — helloo asks first.**
+
+- **📧 Email (Gmail)** — read/triage/summarise the inbox; draft, reply, and send *in your voice* (send is gated).
+- **📅 Calendar** — see your day, find free slots, add / move / cancel events (gated).
+- **✅ Tasks & 📊 Sheets & 📄 Docs** — capture to-dos; read a sheet / append rows; read & create docs.
+- **💬 Slack** — find channels/people, read history, search, post a message (gated).
+- **🧠 Memory you own** — remembers facts, preferences, routines; recall grounded in *your* membrane, correctable and private (RLS-isolated).
+- **👥 People** — look someone up by name/email/handle and get how to reach them (contact graph, filling in).
+- **🔌 Connect from chat** — when helloo needs an account it isn't on, it hands you a link to authorize (and reconnects expired ones).
+- **🛡️ Trust layer** — approve-before-act on every consequential action, with an audit log. It never moves money or sends silently.
+- **📲 Reachable on Telegram** — the first channel; more coming.
+
+Full capability + response map: [`docs/SCENARIOS.md`](docs/SCENARIOS.md). What real users are asking for and what's build-ready: [`docs/FEATURE-REQUESTS.md`](docs/FEATURE-REQUESTS.md).
+
+## In line of work (next)
+
+Ordered by leverage — each primitive unlocks a whole cluster of requested features:
+
+1. **Proactive / scheduled triggers** — reminders, morning briefs, nudges (helloo today only replies when messaged). *The single biggest unlock.*
+2. **Web / news / research** — headlines, markets, company research, world updates tied to your work.
+3. **More channels** — **WhatsApp** (your own account, Baileys sandbox) and **voice / telephony** (call helloo; it can call).
+4. **Self-serve onboarding** — sign up + verify + link a channel end-to-end without manual setup (OTP email delivery + in-channel linking).
+5. **Cross-channel identity** — unify one person across email / Slack / WhatsApp / phones (people graph auto-fill).
+6. **Verticals** — shopping/cart, ride booking, LinkedIn; plus a two-LLM debate mode.
+
+Detailed status: [`docs/BACKLOG.md`](docs/BACKLOG.md) · [`docs/linear-import.csv`](docs/linear-import.csv).
+
+---
+
 ## The wedge — where the moat actually is
 
 Not the channels. Not the model. Not the memory (all commoditizing). The moat is the two things the whole field is failing at:
