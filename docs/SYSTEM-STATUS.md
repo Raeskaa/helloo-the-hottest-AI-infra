@@ -133,13 +133,14 @@ Each: **what it is · done (with references) · remaining · what's needed to bu
 
 ### H. Create workflows — "if this, then that", multi-step
 - **What:** automations beyond a single scheduled message.
-- **🟡 Partial:** the **scheduler** = single-step, **time-triggered** automations (`reminder`, mode `run`
-  executes an agent instruction).
-- **🔴 Remaining:** **event-triggered** workflows (e.g. "when an email from X arrives → draft reply → notify
-  me"), multi-step chains, and a builder.
-- **Needs:** a **trigger/event system** (webhooks/polls from connectors → events) + a **step engine** (a
-  workflow = ordered steps, each a tool/agent call, with the gate on writes) + storage (`workflow`,
-  `workflow_run`). The `reminder` cron is the seed of the execution half; triggers are the missing half.
+- **🟡 Built (v1):** **event-triggered workflows** — `workflow` table (RLS) + agent tools
+  (`helloo_create_workflow` / `list` / `delete`). v1 trigger = a **new Gmail** matching from/subject; the
+  cron polls, dedups against `last_seen_id` (baselines on first poll so it never fires on backlog), runs the
+  `instruction` as an agent turn (multi-step, **writes gated**) and delivers on the channel. Time-triggered
+  automations remain the scheduler's job (`reminder`). *Verified: 'GitHubWatch' fired via cron → delivered.*
+- **🔴 Remaining:** more trigger types (calendar event soon, Slack message), a **step DSL** for typed
+  multi-step chains (v1 uses one agent instruction), a `workflow_run` log/history, per-owner Gmail-fetch
+  batching, pause/resume UI.
 
 ### I. Search
 - **What:** find information.
@@ -200,8 +201,8 @@ size (S/M/L)**.
 ### Phase 2 — the platform (v2)
 6. **User-made agents + bring-your-own-agent** (G) — `agent` table + scoped runtime + registry + A2A client.
    *size:* **L**.
-7. **Workflow engine** (H) — trigger/event system + step engine + builder. Seeded by the scheduler.
-   *size:* **L**.
+7. 🟡 **Workflow engine** (H) — v1 DONE (email-triggered, agent-executed; verified). *remaining:* more
+   triggers (calendar/Slack), typed multi-step DSL, run history, builder UI. *size (rest):* **M**.
 8. **Unified cross-account search** (I) — fan-out + merge. *size:* **M**.
 9. **Workspaces / orgs** — multi-tenant shared membrane. *size:* **L**.
 

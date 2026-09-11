@@ -30,5 +30,6 @@ Spend cap (per-owner daily turn limit),"usage_counter + recordTurn; DAILY_TURN_C
 Security hardening: egress allowlist + OBO tokens + sandbox (Q40),"The real boundary under the gate (spend cap done separately). Egress allowlist low-risk until read-a-URL/MCP-writes exist; auth rate-limit blocked on parallel auth WIP.",Todo,Medium,security
 "Memory UI surfaces (inspect/edit/forget, provenance, People view)",Design gate; deferred while backend-first,Backlog,Low,ui
 Workspaces / orgs (v2),Multi-tenant; org/shared membrane,Backlog,Low,v2
+"Workflow engine v1 (event-triggered automations)","workflow table (RLS) + create/list/delete tools + cron email-trigger poller (dedup via last_seen_id) that runs the instruction as a gated agent turn and delivers. Verified: GitHubWatch fired via cron. Remaining: more triggers, typed steps, run log.",Done,High,workflows;agent
 Bring-your-own-agent + tool/skill registry (v2),A2A Agent Cards,Backlog,Low,v2
 helloo-ai on-device models (v2),One base + LoRA adapters,Backlog,Low,v2
