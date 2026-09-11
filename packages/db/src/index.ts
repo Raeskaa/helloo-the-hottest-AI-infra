@@ -22,3 +22,12 @@ export * as schema from "./schema";
 export { withTenant, type Tx, type TenantDb } from "./tenant";
 export { ensureHello } from "./hello";
 export { withDbRetry, isTransientDbError, makeRetryingFetch } from "./retry";
+export {
+  logEvent,
+  recentEvents,
+  pruneEvents,
+  errorText,
+  type EventLevel,
+  type LogEventInput,
+  type EventRow,
+} from "./events";

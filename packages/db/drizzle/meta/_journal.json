@@ -176,6 +176,13 @@
       "when": 1789160953143,
       "tag": "0024_chat_session",
       "breakpoints": true
+    },
+    {
+      "idx": 25,
+      "version": "7",
+      "when": 1789161357610,
+      "tag": "0025_event_log",
+      "breakpoints": true
     }
   ]
 }

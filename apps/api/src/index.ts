@@ -1,6 +1,6 @@
 import { Hono } from "hono";
 import { cors } from "hono/cors";
-import { pingDb } from "@helloo/db";
+import { pingDb, logEvent, errorText, recentEvents, pruneEvents } from "@helloo/db";
 import { createAuth } from "@helloo/auth";
 import { ingestText, listMemory, recall } from "@helloo/memory";
 import { converse, type ConverseResult, type HistoryMessage } from "@helloo/agent";
@@ -247,6 +247,15 @@ app.get("/api/memory/recall", async (c) => {
   return c.json({ hits });
 });
 
+// Status/observability: the signed-in user's recent events (errors, workflow fires, reminders…).
+app.get("/api/status", async (c) => {
+  const owner = await ownerId(c.env, c.req.raw.headers);
+  if (!owner) return c.json({ error: "unauthorized" }, 401);
+  const events = await recentEvents(c.env.DATABASE_URL, owner, 40);
+  const errors = events.filter((e) => e.level === "error").length;
+  return c.json({ ok: errors === 0, errorCount: errors, events });
+});
+
 // Approvals inbox: consequential actions awaiting the owner's decision.
 app.get("/api/approvals", async (c) => {
   const owner = await ownerId(c.env, c.req.raw.headers);
@@ -376,7 +385,12 @@ app.post("/api/channels/telegram/webhook", async (c) => {
     ].slice(-HISTORY_LIMIT);
     await saveHistory(c.env, "telegram", msg.chatId, owner, updated).catch(() => {});
     c.executionCtx.waitUntil(ingestText(c.env, owner, msg.text).catch(() => {}));
-  } catch {
+  } catch (err) {
+    await logEvent(c.env.DATABASE_URL, {
+      kind: "turn",
+      level: "error",
+      detail: { channel: "telegram", chatId: msg.chatId, error: errorText(err) },
+    });
     await sendTelegramMessage(token, msg.chatId, "Sorry — I hit a snag. Try again in a moment.").catch(() => {});
   }
   return c.json({ ok: true });
@@ -400,8 +414,13 @@ async function runDueReminders(env: Bindings): Promise<void> {
         const text = r.mode === "run" ? await runTurn(env, r.ownerId, r.body) : `⏰ ${r.body}`;
         await sendTelegramMessage(token, chatId, text);
       }
-    } catch {
-      // best-effort delivery; still advance below so it doesn't wedge.
+    } catch (err) {
+      await logEvent(env.DATABASE_URL, {
+        kind: "reminder",
+        level: "error",
+        ownerId: r.ownerId,
+        detail: { reminderId: r.id, error: errorText(err) },
+      });
     }
     await advanceReminder(env, r, now).catch(() => {});
   }
@@ -496,9 +515,21 @@ async function runEmailWorkflows(env: Bindings): Promise<void> {
         const reply = await runTurn(env, wf.ownerId, context);
         if (token && chatId) await sendTelegramMessage(token, chatId, `⚡ ${wf.name}\n\n${reply}`);
       }
+      if (matches.length > 0) {
+        await logEvent(env.DATABASE_URL, {
+          kind: "workflow",
+          ownerId: wf.ownerId,
+          detail: { workflowId: wf.id, name: wf.name, fired: matches.length },
+        });
+      }
       await markWorkflowSeen(env, wf.id, newestId);
-    } catch {
-      // best-effort; next tick retries from the same baseline.
+    } catch (err) {
+      await logEvent(env.DATABASE_URL, {
+        kind: "workflow",
+        level: "error",
+        ownerId: wf.ownerId,
+        detail: { workflowId: wf.id, error: errorText(err) },
+      });
     }
   }
 }
@@ -522,5 +553,6 @@ export default {
     } catch {
       // best-effort; the next tick retries from the same baseline.
     }
+    await pruneEvents(env.DATABASE_URL, 30); // trim the event log (best-effort)
   },
 };

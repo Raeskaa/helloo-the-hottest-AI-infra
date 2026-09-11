@@ -7,6 +7,7 @@ export default defineConfig({
     "./src/schema/people.ts",
     "./src/schema/agents.ts",
     "./src/schema/scheduler.ts",
+    "./src/schema/ops.ts",
     "./src/schema/trust.ts",
     "./src/schema/channels.ts",
   ],

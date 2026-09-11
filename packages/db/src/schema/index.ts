@@ -5,5 +5,6 @@ export * from "./membrane";
 export * from "./people";
 export * from "./agents";
 export * from "./scheduler";
+export * from "./ops";
 export * from "./trust";
 export * from "./channels";
