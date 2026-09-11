@@ -15,7 +15,17 @@ export default function Ask() {
   const [messages, setMessages] = useState<Msg[]>([]);
   const [input, setInput] = useState("");
   const [busy, setBusy] = useState(false);
+  const [loaded, setLoaded] = useState(false);
   const endRef = useRef<HTMLDivElement>(null);
+
+  // Load the persisted conversation on mount (server-side history).
+  useEffect(() => {
+    fetch("/api/ask")
+      .then((r) => (r.ok ? r.json() : { messages: [] }))
+      .then((d) => setMessages(Array.isArray(d.messages) ? d.messages : []))
+      .catch(() => {})
+      .finally(() => setLoaded(true));
+  }, []);
 
   useEffect(() => {
     endRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -25,13 +35,12 @@ export default function Ask() {
     const text = input.trim();
     if (!text || busy) return;
     setInput("");
-    const history = messages.map((m) => ({ role: m.role, text: m.text }));
     setMessages((m) => [...m, { role: "user", text }]);
     setBusy(true);
     const res = await fetch("/api/ask", {
       method: "POST",
       headers: { "content-type": "application/json" },
-      body: JSON.stringify({ message: text, history }),
+      body: JSON.stringify({ message: text }),
     });
     const data = res.ok ? await res.json() : { reply: "Sorry — something went wrong.", pendingApprovals: 0 };
     setBusy(false);
