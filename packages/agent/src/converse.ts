@@ -1,8 +1,17 @@
 import { createGoogleGenerativeAI } from "@ai-sdk/google";
-import { generateText, stepCountIs, type ToolSet } from "ai";
+import { generateText, stepCountIs, tool, type ToolSet } from "ai";
+import { z } from "zod";
 import { recall } from "@helloo/memory";
 import { gate, type ProposedAction, type RiskLevel } from "@helloo/trust";
-import { connectedToolkits, executeAction, getComposioAiTools, isWriteTool } from "@helloo/integrations";
+import {
+  connectedToolkits,
+  executeAction,
+  getComposioAiTools,
+  initiateConnection,
+  isWriteTool,
+  SUPPORTED_TOOLKITS,
+  TOOLKIT_LABELS,
+} from "@helloo/integrations";
 import type { AppEnv } from "@helloo/core";
 
 /**
@@ -39,7 +48,8 @@ function toArgs(v: unknown): Record<string, unknown> {
   return v !== null && typeof v === "object" && !Array.isArray(v) ? { ...v } : {};
 }
 function riskFor(slug: string): RiskLevel {
-  return /(SEND|DELETE|REMOVE|TRASH)/i.test(slug) ? "irreversible" : "high";
+  // Anything that leaves the user's control (sends outward or destroys data) is irreversible.
+  return /(SEND|REPLY|FORWARD|DELETE|REMOVE|TRASH)/i.test(slug) ? "irreversible" : "high";
 }
 function summarize(slug: string, args: Record<string, unknown>): string {
   const bits = Object.entries(args)
@@ -77,16 +87,52 @@ export async function converse(
     }
   }
 
+  // Connect-when-missing: let helloo offer to connect an account it doesn't have yet instead of
+  // dead-ending. This only produces an OAuth link the user opens themselves, so it runs autonomously.
+  const connectable = SUPPORTED_TOOLKITS.filter((t) => !toolkits.includes(t));
+  if (connectable.length > 0) {
+    tools.helloo_connect_account = tool({
+      description:
+        "Start connecting one of the user's accounts so helloo can use it. Returns a link the user " +
+        "opens to authorize. Call this when the user asks to use an account that isn't connected " +
+        "yet, or agrees to connect one — then share the link in your reply.",
+      inputSchema: z.object({
+        toolkit: z.string().describe(`Account to connect. One of: ${connectable.join(", ")}`),
+      }),
+      execute: async ({ toolkit }) => {
+        if (!SUPPORTED_TOOLKITS.includes(toolkit)) {
+          return { error: `Unsupported account "${toolkit}". Supported: ${SUPPORTED_TOOLKITS.join(", ")}` };
+        }
+        const link = await initiateConnection(env, ownerId, toolkit);
+        return { toolkit, redirectUrl: link.redirectUrl };
+      },
+    });
+  }
+
+  const connectedLabels = toolkits.map((t) => TOOLKIT_LABELS[t] ?? t);
+  const connectableLabels = connectable.map((t) => TOOLKIT_LABELS[t] ?? t);
+
   const google = createGoogleGenerativeAI({ apiKey: env.GEMINI_API_KEY });
   const result = await generateText({
     model: google(AGENT_MODEL),
     system:
-      "You are the user's helloo — their personal AI. Answer using what you remember about them " +
-      "(below), general knowledge, and their connected accounts (use the tools when relevant). " +
-      "If a personal fact isn't in memory or their accounts, say you don't know it yet rather than " +
-      "inventing it. For anything that sends, creates, or changes something, DO call the tool — it " +
-      "will be queued for the user's approval, not executed silently. Be concise and warm.\n\n" +
-      `Connected accounts: ${toolkits.length ? toolkits.join(", ") : "none"}.\n` +
+      "You are the user's helloo — their own personal AI. First person, concise, warm, plain " +
+      "language. No corporate filler, no 'As an AI'.\n\n" +
+      "GROUNDING: Answer from what you remember about them (below), their connected accounts (via " +
+      "tools), and general knowledge. If a personal fact isn't in memory or an account, say you " +
+      "don't know it yet — never invent names, numbers, dates, or events.\n\n" +
+      "READS run automatically (fetching email, listing events, reading Slack). Use them before " +
+      "answering questions about the user's accounts rather than guessing. For Slack, resolve a " +
+      "channel or person to an id first (find channels / find users), then read history or search.\n\n" +
+      "WRITES (send/reply, create/update/delete an event, post to Slack, add a task) are never done " +
+      "silently: call the tool and it is queued for the user's approval. Tell them it's waiting for " +
+      "their approval — do NOT claim it's done or sent.\n\n" +
+      "MISSING ACCOUNT: if something needs an account that isn't connected, call " +
+      "helloo_connect_account and give the user the link to authorize — don't just refuse. Only the " +
+      "accounts below can be connected; for anything else, say it's not supported yet.\n\n" +
+      "If a tool errors or returns nothing, say so plainly and suggest the next step.\n\n" +
+      `Connected accounts: ${connectedLabels.length ? connectedLabels.join(", ") : "none"}.\n` +
+      `Can be connected on request: ${connectableLabels.length ? connectableLabels.join(", ") : "none"}.\n` +
       `What you remember about the user:\n${memoryContext}`,
     prompt: message,
     tools,
