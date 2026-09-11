@@ -1,0 +1,148 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+
+@custom-variant dark (&:is(.dark *));
+
+/* ─────────────────────────────────────────────────────────────
+   helloo — Company Brain design tokens (UI→Build Handoff §3/§11)
+   LIGHT = the web "managed brain". Monochrome, hairline borders,
+   white cards on a #FAFAFA canvas. Brand colour appears ONLY on
+   provenance icons + tiny status dots. DARK is reserved for the
+   mobile companion (wired but unused on web).
+   ───────────────────────────────────────────────────────────── */
+:root {
+  --background: #ffffff;
+  --foreground: #0a0a0a;
+  --app-bg: #fafafa;            /* page canvas (body); cards stay white */
+  --card: #ffffff;
+  --card-foreground: #0a0a0a;
+  --popover: #ffffff;
+  --popover-foreground: #0a0a0a;
+  --primary: #0a0a0a;
+  --primary-foreground: #ffffff;
+  --secondary: #f5f5f6;
+  --secondary-foreground: #6b7280;
+  --muted: #f5f5f6;
+  --muted-foreground: #6b7280;  /* text/secondary */
+  --subtle-foreground: #9ca3af; /* text/muted — placeholders, captions, meta */
+  --accent: #f3f4f6;            /* active nav fill */
+  --accent-foreground: #0a0a0a;
+  --destructive: #dc2626;
+  --destructive-foreground: #ffffff;
+  --border: #ebecee;            /* hairline everywhere */
+  --input: #ebecee;
+  --ring: #0a0a0a;
+  --radius: 0.75rem;
+
+  /* status (dots / small pills only) */
+  --warn: #d97706;             /* slipping */
+  --ok: #059669;               /* done / on-track */
+  --danger: #dc2626;           /* overdue */
+
+  /* sidebar */
+  --sidebar: #ffffff;
+  --sidebar-foreground: #0a0a0a;
+  --sidebar-primary: #0a0a0a;
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: #f3f4f6;
+  --sidebar-accent-foreground: #0a0a0a;
+  --sidebar-border: #ebecee;
+  --sidebar-ring: #0a0a0a;
+}
+
+/* Mobile companion (dark-first) — reserved; not used on web yet. */
+.dark {
+  --background: #0c0c0e;
+  --foreground: #f4f4f5;
+  --app-bg: #0c0c0e;
+  --card: #161619;
+  --card-foreground: #f4f4f5;
+  --popover: #161619;
+  --popover-foreground: #f4f4f5;
+  --primary: #ffffff;
+  --primary-foreground: #0c0c0e;
+  --secondary: #1e1e22;
+  --secondary-foreground: #9a9aa2;
+  --muted: #1e1e22;
+  --muted-foreground: #9a9aa2;
+  --subtle-foreground: #7c7c85;
+  --accent: #1e1e22;
+  --accent-foreground: #f4f4f5;
+  --destructive: #f4213b;
+  --destructive-foreground: #ffffff;
+  --border: #2a2a2f;
+  --input: #2a2a2f;
+  --ring: #f4f4f5;
+  --sidebar: #111114;
+  --sidebar-foreground: #f4f4f5;
+  --sidebar-primary: #ffffff;
+  --sidebar-primary-foreground: #0c0c0e;
+  --sidebar-accent: #1e1e22;
+  --sidebar-accent-foreground: #f4f4f5;
+  --sidebar-border: #2a2a2f;
+  --sidebar-ring: #f4f4f5;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-app-bg: var(--app-bg);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-subtle-foreground: var(--subtle-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-warn: var(--warn);
+  --color-ok: var(--ok);
+  --color-danger: var(--danger);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+
+  --font-sans: var(--font-inter), system-ui, -apple-system, sans-serif;
+  --font-mono: ui-monospace, Menlo, "SF Mono", monospace;
+
+  --radius-sm: 8px;
+  --radius-md: 10px;
+  --radius-lg: 12px;
+  --radius-xl: 16px;   /* tiles */
+  --radius-2xl: 18px;  /* cards */
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  html {
+    @apply font-sans;
+  }
+  body {
+    background: var(--app-bg);
+    color: var(--foreground);
+    -webkit-font-smoothing: antialiased;
+  }
+}
+
+/* Assistant presence — placeholder gradient orb until brand is chosen (§3). */
+.orb {
+  background: linear-gradient(135deg, rgb(158, 184, 255) 14%, rgb(204, 178, 255) 50%, rgb(255, 194, 224) 85%);
+}

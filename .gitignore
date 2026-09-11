@@ -10,3 +10,10 @@ node_modules/
 .turbo/
 dist/
 worker-configuration.d.ts
+
+# Next.js / OpenNext build artifacts (apps/web)
+.next/
+.open-next/
+next-env.d.ts
+cloudflare-env.d.ts
+*.tsbuildinfo
