@@ -29,7 +29,11 @@ export async function initiateConnection(
 ): Promise<ConnectionLink> {
   const composio = composioClient(env);
   const authConfigId = await getOrCreateAuthConfig(env, toolkit);
-  const link = await composio.connectedAccounts.link(await composioUserId(env, ownerId), authConfigId);
+  // allowMultiple so reconnecting a toolkit whose token EXPIRED (a prior account already exists)
+  // returns a fresh link instead of erroring — otherwise the connect flow can't heal an expired account.
+  const link = await composio.connectedAccounts.link(await composioUserId(env, ownerId), authConfigId, {
+    allowMultiple: true,
+  });
   if (!link.redirectUrl) {
     throw new Error(`Composio returned no redirect URL for ${toolkit}`);
   }
