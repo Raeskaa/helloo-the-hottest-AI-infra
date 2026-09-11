@@ -4,7 +4,7 @@ Memory: Postgres+RLS membrane + versioned bi-temporal atoms,Non-owner role RLS; 
 Multi-signal recall (pgvector + FTS via RRF),Gemini embeddings 768d; semantic+keyword fusion,Done,High,v1-spine;memory
 Trust layer: Rule-of-Two gate + approve-before-act + policy store + audit,Reads autonomous; writes gated,Done,High,v1-spine;trust
 Agent loop (converse: recall -> reason -> gate -> learn),Multi-step; provider-agnostic (Gemini via AI SDK),Done,High,v1-spine;agent
-DO runtime (HelloAgent, one per user),SQLite-backed; Morning-Brief alarm scaffold,Done,High,v1-spine;runtime
+"DO runtime (HelloAgent, one per user)",SQLite-backed; Morning-Brief alarm scaffold,Done,High,v1-spine;runtime
 Integrations: Composio (Gmail read + gated send),v3 SDK; connect flow,Done,High,v1-spine;integrations
 Channel: Telegram adapter + linking,@kalfiraana_bot; channel_link,Done,High,v1-spine;channels
 Deploy to prod (Cloudflare Workers free + SQLite DOs),Live at helloo-api.getyourbumb.workers.dev,Done,High,ops
@@ -26,7 +26,7 @@ Web search tool (Tavily),"web_search agent tool (Tavily HTTP API); enabled via T
 Email delivery live (Resend + verified domain),"RESEND_API_KEY + EMAIL_FROM (hello@bumblegenerator.com) set as CF secrets; domain verified (DKIM/SPF/DMARC on Cloudflare); real OTP delivery to any address confirmed.",Done,High,auth;ops
 Activate Telegram webhook secret,Set TELEGRAM_WEBHOOK_SECRET + re-setWebhook secret_token,Done,Medium,security
 Security hardening: egress allowlist + OBO tokens + sandbox (Q40),The real boundary under the gate,Todo,Medium,security
-Memory UI surfaces (inspect/edit/forget, provenance, People view),Design gate; deferred while backend-first,Backlog,Low,ui
+"Memory UI surfaces (inspect/edit/forget, provenance, People view)",Design gate; deferred while backend-first,Backlog,Low,ui
 Workspaces / orgs (v2),Multi-tenant; org/shared membrane,Backlog,Low,v2
 Bring-your-own-agent + tool/skill registry (v2),A2A Agent Cards,Backlog,Low,v2
 helloo-ai on-device models (v2),One base + LoRA adapters,Backlog,Low,v2
