@@ -15,7 +15,7 @@ Telegram reliability: fix silent webhook drop (secret_token mismatch),"Root caus
 Add Docs + Sheets tools,Curated read+write with verified slugs (docs search/read/create-md; sheets search/read/append-row); APPEND/UPSERT added to write-gate regex,Done,Low,integrations
 Connection-permission flow,"helloo asks to connect a new app instead of failing (helloo_connect_account tool returns an OAuth link)",Done,High,integrations;trust
 Expand toolset + response-template policy,"Slack read (find/history/search) + Gmail reply/read-thread + Calendar update/delete/free-slots; converse system prompt = explicit response policy; docs/SCENARIOS.md maps every intent->behaviour->template",Done,High,integrations;agent
-People / entity graph + cross-channel identity resolution,"Foundation built: person + person_identity tables (RLS'd), find_person agent tool. Cross-channel auto-extraction of identities from live channels still pending.",In Progress,High,memory;people
+People / entity graph + cross-channel identity resolution,"person + person_identity (RLS) + find_person + AUTO-FILL from Gmail (helloo_import_contacts: senders -> resolve/unify; verified 80->93 people, 13 email identities). Remaining: Slack/phone sources, service-vs-person filtering, auto-on-read.",In Progress,High,memory;people
 Import old entities/entity_mentions,80 legacy people imported from helloo-brain Supabase into person table (emails were null; identities come from live extraction),Done,Medium,migration;people
 WhatsApp channel via Baileys (user's own account on sandbox),Expose API; different risk than banned Business-API bot,Todo,Medium,channels
 Telephony: agents with phone numbers (call/receive),Buy the pipe; call helloo + agent-initiated calls,Todo,Medium,channels;voice

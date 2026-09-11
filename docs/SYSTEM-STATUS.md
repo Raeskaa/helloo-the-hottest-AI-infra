@@ -148,10 +148,11 @@ Each: **what it is · done (with references) · remaining · what's needed to bu
 ### J. Memory / membrane (cross-cutting)
 - **✅ Done:** owned, RLS-isolated, versioned bi-temporal atoms + provenance; recall; **people graph
   foundation** (`person`/`person_identity`, `find_person`, 80 legacy people imported).
-- **🔴 Remaining:** **people-graph auto-fill** (extract identities/mentions from live channels so "unify
-  Manish across email/Slack/WhatsApp/phones" resolves itself); memory UI (inspect/edit/forget — design-gated).
-- **Needs:** an extraction pass on ingest/read (pull senders, @handles, numbers → `person_identity` with
-  resolution against existing people) + a merge/dedup step.
+- **🟡 people-graph auto-fill** — **built for Gmail** (`helloo_import_contacts`): scans senders → resolves
+  into the graph (identity known → skip; same name → attach email = unify; else create). `fetchGmailContacts`
+  + `resolvePeople`. *Verified: 80→93 people, 0→13 email identities.* Schedulable ("import my contacts daily").
+  **Remaining:** other sources (Slack authors, phone numbers, message @handles); service-vs-person filtering;
+  auto-on-read; memory UI (inspect/edit/forget — design-gated).
 
 ### K. Trust & security (cross-cutting, the moat)
 - **✅ Done:** Rule-of-Two **gate**, **approve-before-act** queue, **policy** store, **audit** log; every
@@ -181,9 +182,9 @@ size (S/M/L)**.
 ### Phase 1 — finish v1 for real daily use (now → next)
 1. ✅ **Multi-account connectors** (D) — DONE & verified. `connection` table + default routing +
    list/switch/label tools. *(Follow-ups: per-call account choice, perf pass, more toolkits.)*
-2. **People-graph auto-fill** (J) — *now the top open Phase-1 item* — *why:* makes the contact graph and nudges/wishes real; unifies "Manish".
-   *needs:* extraction on ingest/read → `person_identity` + resolution/dedup. *size:* **M**.
-3. **MCP-as-a-channel** (C) — *why:* the horizontal-infra wedge; reach helloo inside Claude/ChatGPT.
+2. 🟡 **People-graph auto-fill** (J) — Gmail source DONE (`helloo_import_contacts`, verified 80→93 people,
+   0→13 email identities). *remaining:* Slack/phone sources, service-vs-person filtering, auto-on-read. *size (rest):* **S–M**.
+3. **MCP-as-a-channel** (C) — *now the top not-started Phase-1 item.* *why:* the horizontal-infra wedge; reach helloo inside Claude/ChatGPT.
    *needs:* MCP server endpoint (recall + gated tools) + per-user token. *size:* **M**.
 4. **Security hardening basics** (K) — *why:* the real boundary under the gate before wider use.
    *needs:* egress allowlist + spend caps. *size:* **M**.
