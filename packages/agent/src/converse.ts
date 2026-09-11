@@ -5,7 +5,10 @@ import { recall, findPeople } from "@helloo/memory";
 import { scheduleReminder, listReminders, cancelReminder } from "@helloo/scheduler";
 import { gate, type ProposedAction, type RiskLevel } from "@helloo/trust";
 import {
-  connectedToolkits,
+  syncConnections,
+  listAccounts,
+  setDefaultAccount,
+  labelAccount,
   executeAction,
   getComposioAiTools,
   initiateConnection,
@@ -13,6 +16,7 @@ import {
   webSearch,
   SUPPORTED_TOOLKITS,
   TOOLKIT_LABELS,
+  type OwnerConnection,
 } from "@helloo/integrations";
 import type { AppEnv } from "@helloo/core";
 
@@ -70,13 +74,17 @@ export async function converse(
 
   const [hits, toolkits] = await Promise.all([
     recall(env, ownerId, message, 8),
-    connectedToolkits(env, ownerId).catch((): string[] => []),
+    // syncConnections mirrors the user's Composio accounts into our table (multi-account) and
+    // returns the ACTIVE toolkits, so it doubles as connectedToolkits.
+    syncConnections(env, ownerId).catch((): string[] => []),
   ]);
   const memoryContext =
     hits.map((h) => `- ${h.atom.factText}`).join("\n") || "(nothing remembered yet)";
+  const accounts = await listAccounts(env, ownerId).catch((): OwnerConnection[] => []);
 
-  // Reads keep their executor (autonomous); writes have it stripped so the SDK hands the call
-  // back to us for gating instead of running it.
+  // Reads run autonomously but through OUR executor, so they route to the toolkit's DEFAULT account
+  // when the user has several of the same kind. Writes have the executor stripped so the SDK hands
+  // the call back to us for gating (executeAction routes the account on approval).
   const raw = await getComposioAiTools(env, ownerId, toolkits).catch((): ToolSet => ({}));
   const tools: ToolSet = {};
   for (const [name, t] of Object.entries(raw)) {
@@ -85,7 +93,7 @@ export async function converse(
       delete noExec.execute;
       tools[name] = noExec;
     } else {
-      tools[name] = t;
+      tools[name] = { ...t, execute: async (input: unknown) => executeAction(env, ownerId, name, toArgs(input)) };
     }
   }
 
@@ -194,6 +202,51 @@ export async function converse(
     });
   }
 
+  // Multi-account: let the user see/switch/rename accounts when they have several of one kind.
+  tools.helloo_list_accounts = tool({
+    description:
+      "List the user's connected accounts per app, showing which is the default. Use when they ask " +
+      "what's connected or which account is being used.",
+    inputSchema: z.object({}),
+    execute: async () => ({
+      accounts: accounts.map((a) => ({
+        app: TOOLKIT_LABELS[a.toolkit] ?? a.toolkit,
+        label: a.label,
+        default: a.isDefault,
+        status: a.status,
+      })),
+    }),
+  });
+  tools.helloo_set_default_account = tool({
+    description:
+      "Set which connected account is the default for its app (used for reads and actions). Match by " +
+      "the account's label or id from helloo_list_accounts. Use when the user says 'use my <X> account'.",
+    inputSchema: z.object({ account: z.string().describe("Label or id of the account to make default") }),
+    execute: async ({ account }) => setDefaultAccount(env, ownerId, account),
+  });
+  tools.helloo_label_account = tool({
+    description: "Rename a connected account (e.g. call one 'work' and another 'personal') to refer to it easily.",
+    inputSchema: z.object({
+      account: z.string().describe("Current label or id of the account"),
+      newLabel: z.string().describe("The new name"),
+    }),
+    execute: async ({ account, newLabel }) => ({ renamed: await labelAccount(env, ownerId, account, newLabel) }),
+  });
+
+  // Only mention accounts in the prompt when a toolkit has more than one (otherwise it's noise).
+  const activeAccounts = accounts.filter((a) => a.status === "ACTIVE");
+  const counts = new Map<string, number>();
+  for (const a of activeAccounts) counts.set(a.toolkit, (counts.get(a.toolkit) ?? 0) + 1);
+  const hasMultiAccount = [...counts.values()].some((n) => n > 1);
+  const accountNote = hasMultiAccount
+    ? "\nSome apps have MULTIPLE connected accounts — actions use the one marked (default). If the " +
+      "user means a different one, switch it with helloo_set_default_account first, or ask which. " +
+      "Accounts: " +
+      activeAccounts
+        .map((a) => `${TOOLKIT_LABELS[a.toolkit] ?? a.toolkit} → ${a.label}${a.isDefault ? " (default)" : ""}`)
+        .join("; ")
+    : "";
+
   const connectedLabels = toolkits.map((t) => TOOLKIT_LABELS[t] ?? t);
   const connectableLabels = connectable.map((t) => TOOLKIT_LABELS[t] ?? t);
 
@@ -223,7 +276,7 @@ export async function converse(
       "below; if the user names a wall-clock time and you don't know their timezone, ask for it first.\n\n" +
       "If a tool errors or returns nothing, say so plainly and suggest the next step.\n\n" +
       `Current time (UTC): ${new Date().toISOString()}.\n` +
-      `Connected accounts: ${connectedLabels.length ? connectedLabels.join(", ") : "none"}.\n` +
+      `Connected accounts: ${connectedLabels.length ? connectedLabels.join(", ") : "none"}.${accountNote}\n` +
       `Can be connected on request: ${connectableLabels.length ? connectableLabels.join(", ") : "none"}.\n` +
       `What you remember about the user:\n${memoryContext}`,
     prompt: message,

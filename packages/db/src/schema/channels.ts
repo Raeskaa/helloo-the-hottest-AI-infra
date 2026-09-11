@@ -1,5 +1,5 @@
 import { relations, sql } from "drizzle-orm";
-import { pgTable, text, timestamp, index, uniqueIndex } from "drizzle-orm/pg-core";
+import { pgTable, text, boolean, timestamp, index, uniqueIndex } from "drizzle-orm/pg-core";
 import { user } from "./auth";
 
 /**
@@ -52,6 +52,37 @@ export const composioIdentity = pgTable("composio_identity", {
 export const composioIdentityRelations = relations(composioIdentity, ({ one }) => ({
   owner: one(user, { fields: [composioIdentity.ownerId], references: [user.id] }),
 }));
+
+/**
+ * `connection` — one connected external account (a specific Composio connected account) for an owner.
+ * A user can connect SEVERAL accounts of the same toolkit (e.g. 4 Google accounts); each is a row, and
+ * exactly one per toolkit is `is_default`. Tool execution routes to a toolkit's default account (via
+ * Composio's `connectedAccountId`). Identity plumbing like the others: owner connection, no RLS.
+ */
+export const connection = pgTable(
+  "connection",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    ownerId: text("owner_id")
+      .notNull()
+      .references(() => user.id, { onDelete: "cascade" }),
+    toolkit: text("toolkit").notNull(), // e.g. "gmail"
+    /** The Composio connected-account id (e.g. "ca_..."). */
+    connectedAccountId: text("connected_account_id").notNull(),
+    /** Human label for disambiguation (alias if set, else a short id; user-renamable). */
+    label: text("label").notNull(),
+    isDefault: boolean("is_default").notNull().default(false),
+    status: text("status").notNull(), // e.g. "ACTIVE" | "EXPIRED"
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+  },
+  (t) => [
+    uniqueIndex("connection_owner_account_uidx").on(t.ownerId, t.connectedAccountId),
+    index("connection_owner_toolkit_idx").on(t.ownerId, t.toolkit),
+  ],
+);
 
 /**
  * `channel_onboarding` — transient state for a channel chat that has no owner yet, so a brand-new
