@@ -182,8 +182,7 @@ Each: **what it is · done (with references) · remaining · what's needed to bu
 ### M. Ops / delivery
 - **✅ Done:** deployed on free tier; cron warm-up + reminder delivery; Neon cold-start retry wrapper; Resend
   email live (verified domain); Telegram webhook secret; **build-in-public repo** (docs restructured).
-- **🔴 Remaining:** observability/alerting; staging; CI; load/rate limits; the silent-email-failure hardening
-  (`send-verification-otp` returns 200 even on a Resend error).
+- **🟡 Observability added:** `event_log` table + `logEvent` (mirrors to console/CF observability, never throws), wired at the turn/reminder/workflow failure points; `GET /api/status` shows the user's recent events + error count; cron prunes >30d. **🔴 Remaining:** alerting; staging; CI; load/rate limits; the silent-email-failure hardening (`send-verification-otp` returns 200 even on a Resend error — auth-WIP-blocked).
 
 ---
 
