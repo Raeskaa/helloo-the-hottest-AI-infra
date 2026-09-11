@@ -107,10 +107,12 @@ then delivers on your channel — either a plain reminder or a live agent brief.
 - ✅ Health nudges: hydrate, medicine, sleep on a schedule (R3.2, R7) — **built**
 - 🟡 "Report automatically after finishing a task" (R8.3) — schedulable; task-completion detection is separate
 
-### B. Web / news / research
-- 🔴 Overnight markets, headlines, portfolio-affecting news (R1.1, R1.2)
-- 🔴 Company-culture & role research, world updates related to your work (R2, R8.7)
-- 🔴 Deep meeting prep / research (R5.7)
+### B. Web / news / research  *(BUILT ✅ — `web_search` via Tavily, verified live)*
+helloo now searches the live web and cites sources. Combined with the scheduler, "every morning brief me
+on X" works.
+- ✅ Headlines / world & work updates, company-culture & role research (R2, R8.7) — **built**
+- 🟡 Overnight markets / portfolio-affecting news (R1.1, R1.2) — general web search works; live market data + portfolio-awareness is a further step
+- ✅ Deep meeting prep / research (R5.7) — web_search + calendar read
 
 ### C. Voice & telephony
 - 🔴 Talk to helloo by voice (R1.4, R3.3)
@@ -142,7 +144,7 @@ then delivers on your channel — either a plain reminder or a live agent brief.
 
 ## 4. Signal summary (what to build first)
 1. ✅ **Proactive scheduler** — DONE (reminders + recurring briefs). Most-requested cluster now unlockable.
-2. **Web/news search tool** — next; unlocks research, markets, world updates, company culture (§B). *Also makes the daily brief genuinely useful.*
+2. ✅ **Web/news search** — DONE (`web_search` via Tavily). Research, world updates, company culture, and a real daily brief now work.
 3. **Channels** — **WhatsApp**, **voice/telephony**, and **helloo-as-MCP** (reachable inside Claude/ChatGPT).
 4. **People-graph auto-fill** — so nudges/wishes derive *who & when* automatically.
 5. Then verticals (shopping, ride, LinkedIn) as connectors, and the multi-LLM debate mode.
