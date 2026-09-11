@@ -114,7 +114,7 @@ Each: **what it is · done (with references) · remaining · what's needed to bu
   **response policy** (ground-or-abstain, reads-auto, writes-queued, connect-when-missing, cite sources);
   tools: Composio read/write, `web_search`, `helloo_find_person`, `helloo_schedule_reminder`/list/cancel,
   `helloo_connect_account`. One agent per user (the `HelloAgent` DO).
-- **🔴 Remaining:** voice input; threaded/long-context memory of a conversation; sharper disambiguation.
+- **🟡 Short-term memory added** (last 8 turns kept in the DO → follow-ups have context; verified). **🔴 Remaining:** voice input; sharper disambiguation.
 - **Needs:** conversation-thread storage + a richer context assembler; voice = channel work (B).
 
 ### F. Setup / preferences / policies — "set things up"
