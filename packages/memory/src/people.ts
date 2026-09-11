@@ -1,6 +1,6 @@
-import { ilike, inArray, or, desc } from "drizzle-orm";
+import { and, eq, ilike, inArray, or, desc } from "drizzle-orm";
 import { person, personIdentity } from "@helloo/db/schema";
-import { withTenant } from "@helloo/db";
+import { withTenant, ensureHello, type Tx } from "@helloo/db";
 import type { AppEnv } from "@helloo/core";
 
 /**
@@ -106,4 +106,96 @@ export async function listPeople(env: AppEnv, ownerId: string, limit = 20): Prom
       .where(inArray(personIdentity.personId, people.map((p) => p.id)));
     return group(people, idents);
   });
+}
+
+// ── Auto-fill (entity resolution) ────────────────────────────────────────────
+// Turn a raw (name, channel, value) into a person, unifying across surfaces:
+//   1. identity already known → that person (nothing to do)
+//   2. else a person with the same normalized NAME exists → attach this identity to them (unify)
+//   3. else create a new person + this identity
+// Name-based unification is intentionally aggressive (two people sharing a normalized name merge —
+// a known v1 tradeoff of the one-person-per-normalized-name model).
+
+export type ResolveAction = "created" | "linked" | "existing";
+export interface ImportSummary {
+  scanned: number;
+  created: number;
+  linked: number;
+  existing: number;
+}
+export interface ContactInput {
+  name: string;
+  channel: string;
+  value: string;
+}
+
+async function resolveInTx(
+  tx: Tx,
+  ownerId: string,
+  helloId: string,
+  input: ContactInput,
+): Promise<ResolveAction> {
+  const normValue = input.value.toLowerCase().trim();
+  const normName = input.name.toLowerCase().trim();
+  if (normValue.length === 0) return "existing";
+
+  const known = await tx
+    .select({ personId: personIdentity.personId })
+    .from(personIdentity)
+    .where(and(eq(personIdentity.channel, input.channel), eq(personIdentity.norm, normValue)))
+    .limit(1);
+  if (known[0]) return "existing";
+
+  let personId: string | null = null;
+  let action: ResolveAction = "linked";
+  if (normName.length > 0) {
+    const byName = await tx.select({ id: person.id }).from(person).where(eq(person.norm, normName)).limit(1);
+    personId = byName[0]?.id ?? null;
+  }
+  if (!personId) {
+    const chosenNorm = normName.length > 0 ? normName : normValue;
+    const created = await tx
+      .insert(person)
+      .values({
+        ownerId,
+        helloId,
+        displayName: input.name.length > 0 ? input.name : input.value,
+        norm: chosenNorm,
+        mentions: 0,
+      })
+      .onConflictDoNothing({ target: [person.ownerId, person.norm] })
+      .returning({ id: person.id });
+    if (created[0]) {
+      personId = created[0].id;
+      action = "created";
+    } else {
+      const again = await tx.select({ id: person.id }).from(person).where(eq(person.norm, chosenNorm)).limit(1);
+      personId = again[0]?.id ?? null;
+    }
+  }
+  if (!personId) return "existing";
+
+  await tx
+    .insert(personIdentity)
+    .values({ ownerId, helloId, personId, channel: input.channel, value: input.value, norm: normValue })
+    .onConflictDoNothing({ target: [personIdentity.ownerId, personIdentity.channel, personIdentity.norm] });
+  return action;
+}
+
+/** Resolve a batch of contacts into the people graph (one tenant transaction). */
+export async function resolvePeople(
+  env: AppEnv,
+  ownerId: string,
+  inputs: ContactInput[],
+): Promise<ImportSummary> {
+  const summary: ImportSummary = { scanned: inputs.length, created: 0, linked: 0, existing: 0 };
+  if (inputs.length === 0) return summary;
+  await withTenant(env.APP_DATABASE_URL, ownerId, async (tx) => {
+    const helloId = await ensureHello(tx, ownerId);
+    for (const input of inputs) {
+      const action = await resolveInTx(tx, ownerId, helloId, input);
+      summary[action] += 1;
+    }
+  });
+  return summary;
 }

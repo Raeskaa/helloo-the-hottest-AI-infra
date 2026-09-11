@@ -22,3 +22,4 @@ export {
   TOOLKIT_LABELS,
 } from "./tools";
 export { webSearch, type WebSearchResult, type WebSearchResponse } from "./websearch";
+export { fetchGmailContacts, type ExtractedContact } from "./contacts";

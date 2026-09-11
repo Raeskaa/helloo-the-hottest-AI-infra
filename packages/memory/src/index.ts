@@ -27,8 +27,11 @@ export { recall, type RecallHit } from "./recall";
 export {
   findPeople,
   listPeople,
+  resolvePeople,
   type PersonRecord,
   type PersonIdentityRecord,
+  type ContactInput,
+  type ImportSummary,
 } from "./people";
 export {
   membraneSelfTest,

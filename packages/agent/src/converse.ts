@@ -1,7 +1,7 @@
 import { createGoogleGenerativeAI } from "@ai-sdk/google";
 import { generateText, stepCountIs, tool, type ToolSet } from "ai";
 import { z } from "zod";
-import { recall, findPeople } from "@helloo/memory";
+import { recall, findPeople, resolvePeople } from "@helloo/memory";
 import { scheduleReminder, listReminders, cancelReminder } from "@helloo/scheduler";
 import { gate, type ProposedAction, type RiskLevel } from "@helloo/trust";
 import {
@@ -15,6 +15,7 @@ import {
   initiateConnection,
   isWriteTool,
   webSearch,
+  fetchGmailContacts,
   SUPPORTED_TOOLKITS,
   TOOLKIT_LABELS,
   type ConnectionState,
@@ -135,6 +136,27 @@ export async function converse(
       return { matches: people };
     },
   });
+
+  // People auto-fill: build/refresh the contact graph from the user's Gmail (senders → people,
+  // unifying anyone already known by name). Only when Gmail is connected.
+  if (toolkits.includes("gmail")) {
+    tools.helloo_import_contacts = tool({
+      description:
+        "Scan the user's recent Gmail and add the people they correspond with to their contact graph " +
+        "(unifying anyone already known). Use when they ask to build/update their contacts or mailing list.",
+      inputSchema: z.object({
+        limit: z.number().int().min(1).max(100).optional().describe("How many recent emails to scan (default 40)"),
+      }),
+      execute: async ({ limit }) => {
+        const contacts = await fetchGmailContacts(env, ownerId, limit ?? 40);
+        return resolvePeople(
+          env,
+          ownerId,
+          contacts.map((c) => ({ name: c.name, channel: "email", value: c.email })),
+        );
+      },
+    });
+  }
 
   // Proactive scheduling: helloo can message the user LATER — a one-off reminder or a recurring
   // brief. The Worker's cron delivers due reminders; these tools just create/list/cancel them.
