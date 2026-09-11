@@ -5,6 +5,7 @@ import { recall, findPeople } from "@helloo/memory";
 import { scheduleReminder, listReminders, cancelReminder } from "@helloo/scheduler";
 import { gate, type ProposedAction, type RiskLevel } from "@helloo/trust";
 import {
+  getConnections,
   syncConnections,
   listAccounts,
   setDefaultAccount,
@@ -16,7 +17,7 @@ import {
   webSearch,
   SUPPORTED_TOOLKITS,
   TOOLKIT_LABELS,
-  type OwnerConnection,
+  type ConnectionState,
 } from "@helloo/integrations";
 import type { AppEnv } from "@helloo/core";
 
@@ -72,15 +73,16 @@ export async function converse(
 ): Promise<ConverseResult> {
   if (!env.GEMINI_API_KEY) throw new Error("GEMINI_API_KEY is required for the agent loop");
 
-  const [hits, toolkits] = await Promise.all([
+  const [hits, conn] = await Promise.all([
     recall(env, ownerId, message, 8),
-    // syncConnections mirrors the user's Composio accounts into our table (multi-account) and
-    // returns the ACTIVE toolkits, so it doubles as connectedToolkits.
-    syncConnections(env, ownerId).catch((): string[] => []),
+    // Mirrored connection state (multi-account): reads our table, re-syncs from Composio only when
+    // stale — so the hot path avoids a Composio round-trip + N writes every turn.
+    getConnections(env, ownerId).catch((): ConnectionState => ({ toolkits: [], accounts: [] })),
   ]);
+  const toolkits = conn.toolkits;
+  const accounts = conn.accounts;
   const memoryContext =
     hits.map((h) => `- ${h.atom.factText}`).join("\n") || "(nothing remembered yet)";
-  const accounts = await listAccounts(env, ownerId).catch((): OwnerConnection[] => []);
 
   // Reads run autonomously but through OUR executor, so they route to the toolkit's DEFAULT account
   // when the user has several of the same kind. Writes have the executor stripped so the SDK hands
@@ -232,6 +234,24 @@ export async function converse(
     }),
     execute: async ({ account, newLabel }) => ({ renamed: await labelAccount(env, ownerId, account, newLabel) }),
   });
+  tools.helloo_refresh_accounts = tool({
+    description:
+      "Re-check the user's connected accounts from scratch. Use right after they connect a new account " +
+      "and it isn't showing yet.",
+    inputSchema: z.object({}),
+    execute: async () => {
+      await syncConnections(env, ownerId);
+      const a = await listAccounts(env, ownerId);
+      return {
+        accounts: a.map((x) => ({
+          app: TOOLKIT_LABELS[x.toolkit] ?? x.toolkit,
+          label: x.label,
+          default: x.isDefault,
+          status: x.status,
+        })),
+      };
+    },
+  });
 
   // Only mention accounts in the prompt when a toolkit has more than one (otherwise it's noise).
   const activeAccounts = accounts.filter((a) => a.status === "ACTIVE");
@@ -269,7 +289,8 @@ export async function converse(
       "silently: call the tool and it is queued for the user's approval. Tell them it's waiting for " +
       "their approval — do NOT claim it's done or sent.\n\n" +
       "MISSING ACCOUNT: if something needs an account that isn't connected, call " +
-      "helloo_connect_account and give the user the link to authorize — don't just refuse. Only the " +
+      "helloo_connect_account and give the user the link to authorize — don't just refuse. After they " +
+      "authorize, if a just-connected account isn't showing, use helloo_refresh_accounts. Only the " +
       "accounts below can be connected; for anything else, say it's not supported yet.\n\n" +
       "SCHEDULING: you can message the user later — use helloo_schedule_reminder for a reminder or a " +
       "recurring brief (daily/weekly). Compute runAt as an ISO 8601 UTC time from the current time " +

@@ -1,4 +1,4 @@
-import { and, eq, notInArray } from "drizzle-orm";
+import { and, desc, eq, notInArray } from "drizzle-orm";
 import { getDb } from "@helloo/db";
 import { connection } from "@helloo/db/schema";
 import type { AppEnv } from "@helloo/core";
@@ -213,6 +213,37 @@ export async function setDefaultAccount(
     .where(and(eq(connection.ownerId, ownerId), eq(connection.toolkit, hit.toolkit)));
   await db.update(connection).set({ isDefault: true }).where(eq(connection.id, hit.id));
   return { ok: true, toolkit: hit.toolkit, label: hit.label };
+}
+
+/** How long a mirrored view stays fresh before we re-sync from Composio. */
+const SYNC_THROTTLE_MS = 5 * 60 * 1000;
+
+export interface ConnectionState {
+  toolkits: string[];
+  accounts: OwnerConnection[];
+}
+
+/**
+ * The connection state for a turn: reads our mirrored table, and only re-syncs from Composio when
+ * the mirror is stale (older than the throttle) or empty. This keeps the hot path to one/two DB
+ * reads instead of a Composio round-trip + N upserts every message. A just-connected account shows
+ * up on the next sync — `syncConnections` (helloo_refresh_accounts) forces one immediately.
+ */
+export async function getConnections(env: AppEnv, ownerId: string): Promise<ConnectionState> {
+  const db = getDb(env.DATABASE_URL);
+  const recent = await db
+    .select({ u: connection.updatedAt })
+    .from(connection)
+    .where(eq(connection.ownerId, ownerId))
+    .orderBy(desc(connection.updatedAt))
+    .limit(1);
+  const last = recent[0]?.u ?? null;
+  if (!last || Date.now() - last.getTime() > SYNC_THROTTLE_MS) {
+    await syncConnections(env, ownerId);
+  }
+  const accounts = await listAccounts(env, ownerId);
+  const toolkits = [...new Set(accounts.filter((a) => a.status === "ACTIVE").map((a) => a.toolkit))];
+  return { toolkits, accounts };
 }
 
 /** Rename an account (match by current label substring or account id). */

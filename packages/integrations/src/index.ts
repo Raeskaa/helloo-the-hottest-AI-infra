@@ -4,6 +4,7 @@ export {
   listConnections,
   connectedToolkits,
   syncConnections,
+  getConnections,
   listAccounts,
   defaultAccountId,
   setDefaultAccount,
@@ -11,6 +12,7 @@ export {
   type ConnectionLink,
   type Connection,
   type OwnerConnection,
+  type ConnectionState,
 } from "./connections";
 export { executeAction, type ToolResult } from "./execute";
 export {
