@@ -77,7 +77,7 @@ Each: **what it is · done (with references) · remaining · what's needed to bu
 - **What:** the surfaces a user talks to helloo on.
 - **✅ Done:** **Telegram** end-to-end (onboarding, webhook secret, proactive delivery). `channel_link`
   supports **many channels per user**.
-- **🟡 Web UI (Pass 1) LIVE** — `apps/web` (Next.js/OpenNext → helloo-web.getyourbumb.workers.dev): email-OTP login, app shell, **Ask · Approvals inbox · Memory · Connections(multi-account)**, on the new backend (Better Auth + `@helloo/*`, no Supabase; adopted from helloo-brain's design system). Pass 2: People, Overview, Activity, Shared, Settings. See DESIGN-LOG.md / PARITY.md.
+- **🟡 Web UI (Pass 1) LIVE** — `apps/web` (Next.js/OpenNext → helloo-web.getyourbumb.workers.dev): email-OTP login, app shell, **Overview · Ask · Approvals · Memory · People · Connections(multi-account) · Activity · What's-shared · Settings** — the full screen set, on the new backend (Better Auth + `@helloo/*`, no Supabase; helloo-brain's design system). Verified with real data. See DESIGN-LOG.md / PARITY.md.
 - **🔴 Remaining:** **WhatsApp** (Baileys, user's own account — see the ban note) · **Voice/telephony** ·
   **SMS** (a parallel Twilio thread) · **Slack-as-a-channel** · **web chat UI**.
 - **Needs (per channel):** an adapter (parse inbound → `runTurn` → send reply) + linking; the pattern is

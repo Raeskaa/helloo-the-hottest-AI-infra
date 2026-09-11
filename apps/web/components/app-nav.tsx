@@ -2,15 +2,20 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { MessageSquare, ShieldCheck, Layers, Plug } from "lucide-react";
+import { Home, MessageSquare, ShieldCheck, Layers, Users, Plug, AlignLeft, Lock, Settings } from "lucide-react";
 import { authClient } from "@/lib/auth-client";
 import { cn } from "@/lib/utils";
 
 const NAV: Array<{ href: string; label: string; Icon: typeof Layers }> = [
+  { href: "/overview", label: "Overview", Icon: Home },
   { href: "/ask", label: "Ask", Icon: MessageSquare },
   { href: "/approvals", label: "Approvals", Icon: ShieldCheck },
   { href: "/memory", label: "Memory", Icon: Layers },
+  { href: "/people", label: "People", Icon: Users },
   { href: "/connections", label: "Connections", Icon: Plug },
+  { href: "/activity", label: "Activity", Icon: AlignLeft },
+  { href: "/shared", label: "What's shared", Icon: Lock },
+  { href: "/settings", label: "Settings", Icon: Settings },
 ];
 
 export function AppNav() {

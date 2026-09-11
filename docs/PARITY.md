@@ -10,8 +10,8 @@
 | Approvals inbox | ✅ | ⬜ TODO |
 | Memory | ✅ | ⬜ TODO |
 | Connections (multi-account) | ✅ | ⬜ TODO |
-| People | ⬜ Pass 2 | ⬜ TODO |
-| Overview | ⬜ Pass 2 | ⬜ TODO |
-| Activity log | ⬜ Pass 2 | ⬜ TODO |
-| What's shared | ⬜ Pass 2 | ⬜ TODO |
-| Settings | ⬜ Pass 2 | ⬜ TODO |
+| People | ✅ | ⬜ TODO |
+| Overview | ✅ | ⬜ TODO |
+| Activity log | ✅ | ⬜ TODO |
+| What's shared | ✅ | ⬜ TODO |
+| Settings | ✅ | ⬜ TODO |

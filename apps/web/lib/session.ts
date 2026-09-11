@@ -14,6 +14,12 @@ export async function ownerFromRequest(req: Request): Promise<string | null> {
   return session?.user.id ?? null;
 }
 
+/** The signed-in user (id + email) for a request, or null. */
+export async function userFromRequest(req: Request): Promise<{ id: string; email: string } | null> {
+  const session = await createAuth(appEnv()).api.getSession({ headers: req.headers });
+  return session ? { id: session.user.id, email: session.user.email } : null;
+}
+
 /** Standard 401 body. */
 export function unauthorized(): Response {
   return Response.json({ error: "unauthorized" }, { status: 401 });
