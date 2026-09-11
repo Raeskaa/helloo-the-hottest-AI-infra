@@ -1,6 +1,6 @@
 # helloo — System Map
 
-> How helloo works, end to end, **before any new code is written**. Plain-language first, diagrams second. This is a *map to argue with* — engineers, please open issues / PRs / inline comments on anything that's wrong or over-built. Companion: [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) (the decisions + why) and [`QUESTIONS.md`](QUESTIONS.md) (what we're unsure about).
+> How helloo works, end to end, **before any new code is written**. Plain-language first, diagrams second. This is a *map to argue with* — engineers, please open issues / PRs / inline comments on anything that's wrong or over-built. Companion: [`docs/ARCHITECTURE.md`](ARCHITECTURE.md) (the decisions + why) and [`QUESTIONS.md`](QUESTIONS.md) (what we're unsure about).
 
 ---
 

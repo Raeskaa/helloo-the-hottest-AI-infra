@@ -2,7 +2,7 @@
 
 > **We're looking for real engineering judgment before we write new code.** The founder is a designer, not an engineer — so this doc lays out the genuinely-open architecture calls in plain terms, with the trade-offs and our *tentative lean* (a lean, **not a decision** — nothing here is settled). If you build systems like this, please weigh in: open a GitHub issue, comment inline, or PR a change. Blunt disagreement is the most useful thing you can give us.
 >
-> Context: [`SYSTEM-MAP.md`](SYSTEM-MAP.md) (how it works), [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) (decisions + why + sources), [`VERSIONS.md`](VERSIONS.md) (v1/v2/v3). Each question notes the sources behind it.
+> Context: [`SYSTEM-MAP.md`](SYSTEM-MAP.md) (how it works), [`docs/ARCHITECTURE.md`](ARCHITECTURE.md) (decisions + why + sources), [`VERSIONS.md`](VERSIONS.md) (v1/v2/v3). Each question notes the sources behind it.
 
 ---
 
@@ -102,8 +102,8 @@ A studied local-first agent workspace records model messages, tool calls, **perm
 
 ### Q40 — The real isolation boundary (not the UX)
 A hard lesson from prior art: *"the OS is the boundary, the engine is the UX"* — an in-process permission engine is not a security boundary.
-- **Ask:** Under our approval UX, what is helloo's actual OS/process/network isolation on a Cloudflare-DO runtime — a per-run container + a default-deny egress allowlist? Is that boundary strong enough for agents acting on real accounts? (Both options specced in [`docs/HUB-TRUST.md`](docs/HUB-TRUST.md).)
+- **Ask:** Under our approval UX, what is helloo's actual OS/process/network isolation on a Cloudflare-DO runtime — a per-run container + a default-deny egress allowlist? Is that boundary strong enough for agents acting on real accounts? (Both options specced in [`docs/HUB-TRUST.md`](HUB-TRUST.md).)
 
 ---
 
-**How to respond:** open an issue per question (title `Q<n>: …`), comment inline, or PR edits. Highest-leverage: **Q2** (memory implementation), **Q6** (is v1 over-scoped), **Q9** (autonomous-federation safety), **Q13/Q37** (recall), **Q39** (audit event model), **Q40** (real isolation boundary). The two hub deep-dives are [`docs/HUB-MEMORY.md`](docs/HUB-MEMORY.md) and [`docs/HUB-TRUST.md`](docs/HUB-TRUST.md), and the strawman schema is [`docs/DATA-MODEL.md`](docs/DATA-MODEL.md). Thank you — genuinely.
+**How to respond:** open an issue per question (title `Q<n>: …`), comment inline, or PR edits. Highest-leverage: **Q2** (memory implementation), **Q6** (is v1 over-scoped), **Q9** (autonomous-federation safety), **Q13/Q37** (recall), **Q39** (audit event model), **Q40** (real isolation boundary). The two hub deep-dives are [`docs/HUB-MEMORY.md`](HUB-MEMORY.md) and [`docs/HUB-TRUST.md`](HUB-TRUST.md), and the strawman schema is [`docs/DATA-MODEL.md`](DATA-MODEL.md). Thank you — genuinely.

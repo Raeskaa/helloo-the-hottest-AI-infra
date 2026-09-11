@@ -1,6 +1,6 @@
 # Users & Onboarding
 
-> Who comes to helloo, why they come, how they get in, and how they migrate from other AIs. A living reference — ideation + (incoming) research. Not v1 scope; that's decided later. Companion: [`PRD.md`](../PRD.md), [`SYSTEM-MAP.md`](../SYSTEM-MAP.md).
+> Who comes to helloo, why they come, how they get in, and how they migrate from other AIs. A living reference — ideation + (incoming) research. Not v1 scope; that's decided later. Companion: [`PRD.md`](PRD.md), [`SYSTEM-MAP.md`](SYSTEM-MAP.md).
 
 ## The organizing idea: "many doors, one hello"
 Every entry point is a *door*. Behind all of them is **one verified identity** (anchored on email or phone + OTP) that resolves to **one hello**. Design rule: *meet the user in whatever channel they're already in, verify who they are, drop them into their single hello — which works immediately and gets richer over time.* This keeps a dozen doors from becoming a dozen products.

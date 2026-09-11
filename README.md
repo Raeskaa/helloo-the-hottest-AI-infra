@@ -2,7 +2,7 @@
 
 > Infrastructure for personal AIs people **own** — layered memory they control, agents that act across their real accounts *safely*, reachable from any channel. Open-source core, hosted premium.
 
-This repository holds the **platform thesis** for helloo. It is a living document — a build-in-public statement of what we're making, why now, and how we intend to win. Code lives elsewhere; this is the argument.
+This repository holds both the **platform thesis** and the **working code** for helloo — a build-in-public statement of what we're making and why, and the monorepo that runs it (`apps/`, `packages/`). Working docs live in [`docs/`](docs/README.md).
 
 ---
 
@@ -26,7 +26,7 @@ Everyone is about to have a personal AI. But the mass-market default will belong
 
 Not a chatbot with a nicer personality. Not a memory feature. Not a walled-garden assistant. Not another agent that runs as root and hopes for the best.
 
-**How we say it** (from talking to the technical-solopreneur crowd): helloo is **the layer that makes you independent of any one model and reaches into your real life** — **automations that actually work** (bounded, observable, cost-capped; it *informs* and drafts, and acts only with your OK), and a memory that's **yours, correctable, and exportable** — not "an AI that remembers everything." We don't say "agents" to users, and we don't lecture about privacy — we make it a felt benefit. Full language guide in [`PRD.md`](PRD.md#positioning--product-language-from-user-research--apply-everywhere).
+**How we say it** (from talking to the technical-solopreneur crowd): helloo is **the layer that makes you independent of any one model and reaches into your real life** — **automations that actually work** (bounded, observable, cost-capped; it *informs* and drafts, and acts only with your OK), and a memory that's **yours, correctable, and exportable** — not "an AI that remembers everything." We don't say "agents" to users, and we don't lecture about privacy — we make it a felt benefit. Full language guide in [`PRD.md`](docs/PRD.md#positioning--product-language-from-user-research--apply-everywhere).
 
 ---
 
@@ -138,22 +138,22 @@ We are building the *non-naive* version on purpose. Naive horizontal infra is th
 ---
 
 ## Code
-The app is a **pnpm + Turborepo monorepo** — `apps/` (composition-only) + `packages/` (domain). First slice built: **auth** (Better Auth + Hono on Cloudflare Workers) — passwordless OTP + magic link + social + organizations, users owned in your own Postgres. Setup: [`DEVELOPMENT.md`](DEVELOPMENT.md). Secrets are never committed.
+The app is a **pnpm + Turborepo monorepo** — `apps/` (composition-only) + `packages/` (domain). First slice built: **auth** (Better Auth + Hono on Cloudflare Workers) — passwordless OTP + magic link + social + organizations, users owned in your own Postgres. Setup: [`DEVELOPMENT.md`](docs/DEVELOPMENT.md). Secrets are never committed.
 - [`apps/api`](apps/api) — the Hono Worker (mounts auth; later: agent runtime, channels)
 - [`packages/auth`](packages/auth) · [`packages/db`](packages/db) · [`packages/core`](packages/core) — domain packages (memory/trust/agent/channels added as built)
 
 ## Read next
 
-- [`SYSTEM-MAP.md`](SYSTEM-MAP.md) — how helloo works end to end (diagrams), before any new code.
+- [`SYSTEM-MAP.md`](docs/SYSTEM-MAP.md) — how helloo works end to end (diagrams), before any new code.
 - [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) — the architecture decisions, why, and the alternatives.
 - [`docs/HUB-MEMORY.md`](docs/HUB-MEMORY.md) & [`docs/HUB-TRUST.md`](docs/HUB-TRUST.md) — deep-dives on the two hub subsystems everything sits on.
 - [`docs/DATA-MODEL.md`](docs/DATA-MODEL.md) — strawman schema (event log + bi-temporal atoms + tiers) for devs to react to.
-- [`VERSIONS.md`](VERSIONS.md) — proposed v1 / v2 / v3 build sequence (for the team to confirm).
-- [`PRD.md`](PRD.md) — product features/surfaces per version, for the UX team to design from.
+- [`VERSIONS.md`](docs/VERSIONS.md) — proposed v1 / v2 / v3 build sequence (for the team to confirm).
+- [`PRD.md`](docs/PRD.md) — product features/surfaces per version, for the UX team to design from.
 - [`docs/USERS-AND-ONBOARDING.md`](docs/USERS-AND-ONBOARDING.md) — who comes, why, the entry points, and migration-as-onboarding.
 - [`docs/USE-CASES.md`](docs/USE-CASES.md) — the use-case taxonomy, grounded in how people actually run AI routines.
 - [`docs/HORIZON.md`](docs/HORIZON.md) — the 2yr/5yr research roadmap: what's coming (papers) and what helloo does with it.
-- [`QUESTIONS.md`](QUESTIONS.md) — open questions for engineers. **If you build systems like this, please weigh in** — open an issue or comment inline.
+- [`QUESTIONS.md`](docs/QUESTIONS.md) — open questions for engineers. **If you build systems like this, please weigh in** — open an issue or comment inline.
 
 ## Status
 

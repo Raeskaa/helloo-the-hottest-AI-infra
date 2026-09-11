@@ -1,6 +1,6 @@
 # helloo — Build Sequence (v1 / v2 / v3)
 
-> **A proposal for the engineering team to confirm or reshuffle — nothing here is a final decision.** Nothing is *cut*; the whole vision still gets built, sequenced so v1 ships real value and de-risks the hard parts before we generalize into the full platform. Companion: [`QUESTIONS.md`](QUESTIONS.md) (the open calls), [`SYSTEM-MAP.md`](SYSTEM-MAP.md) (how it works), [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) (why).
+> **A proposal for the engineering team to confirm or reshuffle — nothing here is a final decision.** Nothing is *cut*; the whole vision still gets built, sequenced so v1 ships real value and de-risks the hard parts before we generalize into the full platform. Companion: [`QUESTIONS.md`](QUESTIONS.md) (the open calls), [`SYSTEM-MAP.md`](SYSTEM-MAP.md) (how it works), [`docs/ARCHITECTURE.md`](ARCHITECTURE.md) (why).
 >
 > Two red-team passes (engineer/forum opinion) shaped this. Their headline: a pre-user team should prove **one deeply useful app** before building the full platform. So v1 = the smallest thing that *fully* proves the thesis (**owned memory + safe action**), built comprehensively where it counts, with the platform generalizing out of it in v2/v3.
 

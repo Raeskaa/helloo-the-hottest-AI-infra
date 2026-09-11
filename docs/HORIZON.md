@@ -1,6 +1,6 @@
 # Horizon — the research roadmap (2yr / 5yr)
 
-> What the last ~12 months of AI research says is *coming but not here yet*, and how helloo rides it. For each capability: **today → the frontier (recent papers) → ~2yr → ~5yr → what helloo does with it.** Papers are reference points, not dependencies. Companion: [`ARCHITECTURE.md`](ARCHITECTURE.md), [`VERSIONS.md`](../VERSIONS.md).
+> What the last ~12 months of AI research says is *coming but not here yet*, and how helloo rides it. For each capability: **today → the frontier (recent papers) → ~2yr → ~5yr → what helloo does with it.** Papers are reference points, not dependencies. Companion: [`ARCHITECTURE.md`](ARCHITECTURE.md), [`VERSIONS.md`](VERSIONS.md).
 >
 > **Sourcing honesty:** anchor papers are cited by arXiv ID; several very recent (2026) IDs were surfaced via search summaries and should be **click-verified before formal citation** (flagged where load-bearing). Timelines are directional reads, not promises.
 

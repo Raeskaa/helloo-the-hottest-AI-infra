@@ -1,6 +1,6 @@
 # helloo — Product PRD (v1 / v2 / v3)
 
-> **Feature scope for the UX team to start designing in parallel.** This is *product* (surfaces, features, states, user stories) — not UI design; the actual screens go through the design process. A proposal to confirm/reshuffle, mapped to the architecture in [`VERSIONS.md`](VERSIONS.md) / [`ARCHITECTURE.md`](docs/ARCHITECTURE.md). Existing app already had: chat/ask, memory, people, commitments, activity, connections, shared, members, settings, automations, voice — this organizes and extends that.
+> **Feature scope for the UX team to start designing in parallel.** This is *product* (surfaces, features, states, user stories) — not UI design; the actual screens go through the design process. A proposal to confirm/reshuffle, mapped to the architecture in [`VERSIONS.md`](VERSIONS.md) / [`ARCHITECTURE.md`](ARCHITECTURE.md). Existing app already had: chat/ask, memory, people, commitments, activity, connections, shared, members, settings, automations, voice — this organizes and extends that.
 
 ## Product primitives (the nouns the whole app is built from)
 - **Conversation** (text + voice, any channel) · **Memory** (facts helloo owns about you) · **People** (your relationship graph) · **Actions** (things helloo does on your accounts) · **Approvals** (gate before consequential actions) · **Automations** (proactive/scheduled) · **Connections** (integrations) · **Membrane** (private vs shared) · **Channels** (where helloo lives) · later: **Skills/Agents**, **Workspaces/Orgs**, **Other hellos**.
@@ -19,7 +19,7 @@ Research with the beachhead (technical solopreneurs / AI power users on HN, Indi
 - **Ownership is a *felt benefit*, not a slogan.** "Own your AI" is now table-stakes rhetoric — differentiate on *how* (the membrane, portability, correctable memory), framed as "portable, works everywhere, can't be leaked, no re-explaining," never a privacy lecture.
 - **Pricing must be flat, predictable, legible.** The nerve is **ambiguity, not price** ("silently drains $30 in 8 minutes"). Avoid metered/token pricing on memory; consider ownership/one-time framing; make value **accrue over time** (the longer you use it, the more it knows you) — the antidote to the 2–3-month churn cliff.
 
-**Beachhead:** primary target = **technical solopreneurs / indie hackers** (business WTP + lowest CAC + evangelism) → expand to creator-*entrepreneurs* and small-biz (paying) → students/aspiring-creators are growth, not revenue. See [`docs/USERS-AND-ONBOARDING.md`](docs/USERS-AND-ONBOARDING.md).
+**Beachhead:** primary target = **technical solopreneurs / indie hackers** (business WTP + lowest CAC + evangelism) → expand to creator-*entrepreneurs* and small-biz (paying) → students/aspiring-creators are growth, not revenue. See [`docs/USERS-AND-ONBOARDING.md`](USERS-AND-ONBOARDING.md).
 
 ---
 

@@ -10,7 +10,7 @@ Organizing frame: **two assets we own** (memory, trust) + **four walls to beat**
 
 ## Reality check — red-team verdicts (proposals, pending engineering confirmation)
 
-Two red-team passes (engineer/forum opinion, HN, practitioner blogs) stress-tested every decision. **None of these is settled by us — they are proposals for the engineering team; the live decision points are in [`QUESTIONS.md`](../QUESTIONS.md), and the build order is in [`VERSIONS.md`](../VERSIONS.md).** Verdicts:
+Two red-team passes (engineer/forum opinion, HN, practitioner blogs) stress-tested every decision. **None of these is settled by us — they are proposals for the engineering team; the live decision points are in [`QUESTIONS.md`](QUESTIONS.md), and the build order is in [`VERSIONS.md`](VERSIONS.md).** Verdicts:
 
 - **Runtime — Durable Objects per user: KEEP, with guardrails.** In the sweet spot for a per-user agent. Guardrails: shard memory into SQLite tables (not the 2 MB default state blob — open bug that hits long AI chats); index sparingly; design for hibernation; wrap the Agents SDK (its high-level surface churns).
 - **Data split — Postgres record / DO runtime: KEEP, but single-master.** Correct separation *iff* one-way sync (DO live → Postgres record); never dual-write the same field (Kleppmann). (→ Q1)

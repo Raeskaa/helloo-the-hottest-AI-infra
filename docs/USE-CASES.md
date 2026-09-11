@@ -1,6 +1,6 @@
 # Use Cases — grounded in how people actually run AI routines
 
-> A use-case taxonomy for helloo, built from how people *really* use AI routines/automations today (2025–2026 research). The point isn't to list features — it's to structure use cases around what actually becomes a habit, and to attack the exact gaps every incumbent's "scheduled tasks" leave open. Companion: [`PRD.md`](../PRD.md), [`USERS-AND-ONBOARDING.md`](USERS-AND-ONBOARDING.md).
+> A use-case taxonomy for helloo, built from how people *really* use AI routines/automations today (2025–2026 research). The point isn't to list features — it's to structure use cases around what actually becomes a habit, and to attack the exact gaps every incumbent's "scheduled tasks" leave open. Companion: [`PRD.md`](PRD.md), [`USERS-AND-ONBOARDING.md`](USERS-AND-ONBOARDING.md).
 
 ## The one insight that should govern every use case
 A tracked user ran **~60 automations over 18 months — only 5 survived** past a month. The survivors all passed **three filters**, which we adopt as design law:
@@ -12,7 +12,7 @@ A tracked user ran **~60 automations over 18 months — only 5 survived** past a
 
 **Two rules for every helloo use case:** (a) **close the loop to a real endpoint** — send / schedule / file, never produce a doc; (b) prefer **time-based or event-triggered** categories that already have a natural cadence.
 
-**Language (from research — see [`PRD.md`](../PRD.md) positioning):** to users these are **"automations / routines that actually work"**, never "agents." Default is **"informs > acts"** — helloo surfaces and drafts; it *acts* only through the approval gate; and it stays **conditional** (silent when nothing changed), **cost-capped**, and **kill-switchable**. That's exactly the reliability + trust bar this crowd (having been burned by unattended agents) demands.
+**Language (from research — see [`PRD.md`](PRD.md) positioning):** to users these are **"automations / routines that actually work"**, never "agents." Default is **"informs > acts"** — helloo surfaces and drafts; it *acts* only through the approval gate; and it stays **conditional** (silent when nothing changed), **cost-capped**, and **kill-switchable**. That's exactly the reliability + trust bar this crowd (having been burned by unattended agents) demands.
 
 ---
 
