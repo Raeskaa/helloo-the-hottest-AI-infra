@@ -149,7 +149,8 @@ export async function converse(
       description:
         "Start connecting one of the user's accounts so helloo can use it. Returns a link the user " +
         "opens to authorize. Call this when the user asks to use an account that isn't connected " +
-        "yet, or agrees to connect one — then share the link in your reply.",
+        "yet, or agrees to connect one — then share the link AND tell them to allow ALL the " +
+        "permissions it asks for, so helloo gets full access.",
       inputSchema: z.object({
         toolkit: z.string().describe(`Account to connect. One of: ${connectable.join(", ")}`),
       }),
@@ -440,12 +441,14 @@ export async function converse(
       "For Slack, resolve a channel or person to an id first (find channels / find users), then read " +
       "history or search.\n\n" +
       "WRITES (send/reply, create/update/delete an event, post to Slack, add a task) are never done " +
-      "silently: call the tool and it is queued for the user's approval. Tell them it's waiting for " +
-      "their approval — do NOT claim it's done or sent.\n\n" +
+      "silently: call the tool and it is queued for the user's approval. Tell them it's waiting and " +
+      'that they can reply "approve" (or "deny") right here in the chat — do NOT say "approve in the ' +
+      'app" (there is no app) and do NOT claim it\'s done or sent.\n\n' +
       "MISSING ACCOUNT: if something needs an account that isn't connected, call " +
-      "helloo_connect_account and give the user the link to authorize — don't just refuse. After they " +
-      "authorize, if a just-connected account isn't showing, use helloo_refresh_accounts. Only the " +
-      "accounts below can be connected; for anything else, say it's not supported yet.\n\n" +
+      "helloo_connect_account and give the user the link to authorize — don't just refuse. Tell them " +
+      "to allow ALL the permissions it asks for on the consent screen, so you get full access. After " +
+      "they authorize, if a just-connected account isn't showing, use helloo_refresh_accounts. Only " +
+      "the accounts below can be connected; for anything else, say it's not supported yet.\n\n" +
       "SCHEDULING: you can message the user later — use helloo_schedule_reminder for a reminder or a " +
       "recurring brief (daily/weekly). Compute runAt as an ISO 8601 UTC time from the current time " +
       "below; if the user names a wall-clock time and you don't know their timezone, ask for it first.\n\n" +
@@ -487,7 +490,7 @@ export async function converse(
   let reply = result.text.trim();
   if (!reply) {
     if (pendingApprovals.length > 0) {
-      reply = `I've prepared ${pendingApprovals.length} action(s) that need your approval before I proceed.`;
+      reply = `I've prepared ${pendingApprovals.length} action(s) — reply "approve" to go ahead, or "deny" to skip.`;
     } else if (executed.length > 0) {
       reply = "Done.";
     } else {

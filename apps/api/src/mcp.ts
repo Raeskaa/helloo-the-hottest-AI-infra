@@ -123,7 +123,7 @@ async function callTool(
     const r = await converse(env, ownerId, asString(args.instruction));
     const note =
       r.pendingApprovals.length > 0
-        ? `\n\n(${r.pendingApprovals.length} action(s) queued for the user's approval in their helloo app.)`
+        ? `\n\n(${r.pendingApprovals.length} action(s) queued — the user approves them in their helloo chat.)`
         : "";
     return `${r.reply}${note}`;
   }

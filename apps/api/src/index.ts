@@ -55,7 +55,52 @@ async function runTurn(env: Bindings, owner: string, message: string): Promise<s
   if (!parsed.success) return "Sorry — something went wrong.";
   const reply = parsed.data.reply && parsed.data.reply.length > 0 ? parsed.data.reply : "…";
   const pending = parsed.data.pendingApprovals?.length ?? 0;
-  return pending > 0 ? `${reply}\n\n(⏳ ${pending} action(s) need your approval in the app.)` : reply;
+  if (pending > 0) {
+    const it = pending === 1 ? "it" : `them (say "approve all")`;
+    return `${reply}\n\n⏳ ${pending} action(s) waiting — reply "approve" to do ${it}, or "deny" to skip.`;
+  }
+  return reply;
+}
+
+/** Approve/deny the pending action(s) straight from the chat (no app needed). Returns whether it handled the message. */
+function approvalIntent(text: string): "allow" | "deny" | null {
+  const t = text.trim().toLowerCase().replace(/[.!]+$/, "");
+  if (/^(approve|approve all|yes|yes all|ok|okay|confirm|go ahead|do it|send it|sounds good|👍)$/.test(t)) return "allow";
+  if (/^(deny|deny all|no|nope|cancel|reject|stop|skip|don'?t)$/.test(t)) return "deny";
+  return null;
+}
+
+async function handleApprovalIntent(
+  env: Bindings,
+  token: string,
+  owner: string,
+  chatId: string,
+  text: string,
+): Promise<boolean> {
+  const intent = approvalIntent(text);
+  if (!intent) return false;
+  const open = await listOpenApprovals(env, owner);
+  if (open.length === 0) return false; // a plain "yes"/"no" with nothing pending — let the agent handle it
+  const all = /\ball\b/.test(text.toLowerCase());
+  const targets = all ? open : open.slice(0, 1); // newest first; approve just the latest unless "all"
+  const lines: string[] = [];
+  for (const req of targets) {
+    try {
+      const decided = await decide(env, owner, req.id, { decision: intent, reviewer: owner });
+      if (intent === "deny") {
+        lines.push(`🚫 Skipped: ${req.tool}`);
+      } else if (decided.request.status === "allowed") {
+        const exec = await executeAction(env, owner, decided.request.tool, decided.request.args);
+        lines.push(exec.successful ? `✅ Done: ${req.tool}` : `⚠️ ${req.tool} failed: ${exec.error ?? "unknown error"}`);
+      }
+    } catch {
+      lines.push(`⚠️ Couldn't process ${req.tool}.`);
+    }
+  }
+  const remaining = all ? 0 : open.length - 1;
+  if (remaining > 0) lines.push(`(${remaining} more waiting — reply "approve all" for the rest.)`);
+  await sendTelegramMessage(token, chatId, lines.join("\n") || "Nothing to do.");
+  return true;
 }
 
 /**
@@ -320,6 +365,10 @@ app.post("/api/channels/telegram/webhook", async (c) => {
     if (!owner) {
       // No account yet — sign the user up from inside the chat (ask email → OTP → verify → link).
       await handleOnboarding(c.env, token, msg.chatId, msg.text);
+      return c.json({ ok: true });
+    }
+    // Approve/deny a pending action right from the chat (no app). If handled, we're done.
+    if (await handleApprovalIntent(c.env, token, owner, msg.chatId, msg.text)) {
       return c.json({ ok: true });
     }
     // Run the turn synchronously on the request's full budget (Telegram waits up to ~60s), then
