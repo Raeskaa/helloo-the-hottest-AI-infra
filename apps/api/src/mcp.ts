@@ -1,12 +1,14 @@
 import { recall, findPeople } from "@helloo/memory";
 import { webSearch } from "@helloo/integrations";
+import { converse } from "@helloo/agent";
 import type { AppEnv } from "@helloo/core";
 
 /**
- * helloo as an MCP server (read-only v1). Exposes a small, SAFE surface — the user's memory, their
- * people graph, and web search — over MCP's JSON-RPC so any MCP client (Claude / ChatGPT / …) can
- * reach a specific user's helloo. The per-user token (in the endpoint path) is the credential;
- * writes/actions are intentionally NOT exposed here yet (they belong behind the trust gate).
+ * helloo as an MCP server. Exposes the user's memory, people graph, web search, AND a full agent
+ * action tool (`helloo_do`) over MCP's JSON-RPC so any MCP client (Claude / ChatGPT / …) can reach a
+ * specific user's helloo. The per-user token (in the endpoint path) is the credential. Actions are
+ * SAFE because `helloo_do` runs the normal agent turn: reads run, but any write is QUEUED for the
+ * user's approval via the trust gate — never executed silently from another assistant.
  */
 
 const PROTOCOL_VERSION = "2025-06-18";
@@ -62,6 +64,18 @@ function toolDefs(env: AppEnv): Array<{ name: string; description: string; input
         required: ["name"],
       },
     },
+    {
+      name: "helloo_do",
+      description:
+        "Ask the user's helloo to DO something — it reads their connected accounts and memory, and any " +
+        "action (send an email, create an event, post to Slack, set a reminder…) is QUEUED for the " +
+        "user's approval, never done silently. Use for tasks, not just questions.",
+      inputSchema: {
+        type: "object",
+        properties: { instruction: { type: "string", description: "What to ask helloo to do" } },
+        required: ["instruction"],
+      },
+    },
   ];
   if (env.TAVILY_API_KEY) {
     defs.push({
@@ -104,6 +118,14 @@ async function callTool(
     const r = await webSearch(env, asString(args.query), 5);
     const sources = r.results.map((s) => `- ${s.title}: ${s.url}`).join("\n");
     return `${r.answer ?? "(no direct answer)"}\n\nSources:\n${sources}`;
+  }
+  if (name === "helloo_do") {
+    const r = await converse(env, ownerId, asString(args.instruction));
+    const note =
+      r.pendingApprovals.length > 0
+        ? `\n\n(${r.pendingApprovals.length} action(s) queued for the user's approval in their helloo app.)`
+        : "";
+    return `${r.reply}${note}`;
   }
   throw new Error(`unknown tool: ${name}`);
 }

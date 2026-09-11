@@ -127,8 +127,12 @@ export async function converse(
   // the call back to us for gating (executeAction routes the account on approval).
   const raw = await getComposioAiTools(env, ownerId, toolkits).catch((): ToolSet => ({}));
   const tools: ToolSet = {};
+  // Only these (Composio write tools) get gated after the turn. Our own helloo_* tools run via their
+  // own executors and must NOT be gated even if their names contain write-words like "create"/"delete".
+  const composioWriteTools = new Set<string>();
   for (const [name, t] of Object.entries(raw)) {
     if (isWriteTool(name)) {
+      composioWriteTools.add(name);
       const noExec = { ...t };
       delete noExec.execute;
       tools[name] = noExec;
@@ -459,7 +463,7 @@ export async function converse(
   const pendingApprovals: PendingApproval[] = [];
   const executed: ExecutedAction[] = [];
   for (const call of result.toolCalls) {
-    if (!isWriteTool(call.toolName)) continue;
+    if (!composioWriteTools.has(call.toolName)) continue; // only gate Composio writes, not helloo_* tools
     const args = toArgs(call.input);
     const action: ProposedAction = {
       tool: call.toolName,
