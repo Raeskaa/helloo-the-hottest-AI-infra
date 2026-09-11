@@ -158,10 +158,14 @@ Each: **what it is · done (with references) · remaining · what's needed to bu
 
 ### K. Trust & security (cross-cutting, the moat)
 - **✅ Done:** Rule-of-Two **gate**, **approve-before-act** queue, **policy** store, **audit** log; every
-  external write is gated; money/trades never auto-executed.
-- **🔴 Remaining:** **egress allowlist + scoped OBO tokens + sandbox** (Q40); **spend caps**; webhook-secret
-  is active but broader hardening pending.
-- **Needs:** an outbound-fetch allowlist per agent; per-owner budget tracking + a cap check before tool calls.
+  external write is gated; money/trades never auto-executed. **Spend cap:** per-owner daily turn cap
+  (`usage_counter` + `recordTurn`, `DAILY_TURN_CAP`, enforced in `converse`; verified — over-cap turns
+  short-circuit with no LLM cost). Telegram webhook secret active.
+- **🔴 Remaining:** **egress allowlist** (default-deny outbound host list — low risk today since no
+  arbitrary-URL fetch, matters once we add read-a-URL / MCP writes) + **scoped OBO tokens + sandbox** (Q40);
+  auth-endpoint rate limiting (OTP-send spam — currently blocked on the parallel auth WIP; enable Better
+  Auth's rate limiter when that lands).
+- **Needs:** an outbound-fetch allowlist; Better Auth `rateLimit` config on the auth handler.
 
 ### L. Model layer
 - **✅ Done:** provider-agnostic via the AI SDK (Gemini today: `gemini-3.6-flash` for the loop,
@@ -188,8 +192,8 @@ size (S/M/L)**.
    0→13 email identities). *remaining:* Slack/phone sources, service-vs-person filtering, auto-on-read. *size (rest):* **S–M**.
 3. 🟡 **MCP-as-a-channel** (C) — read-only server DONE (`/api/mcp/:token`: recall_memory, find_person, web_search;
    verified). *remaining:* gated writes over MCP, OAuth, a token UI. *size (rest):* **S–M**.
-4. **Security hardening basics** (K) — *why:* the real boundary under the gate before wider use.
-   *needs:* egress allowlist + spend caps. *size:* **M**.
+4. 🟡 **Security hardening basics** (K) — **spend cap DONE** (per-owner daily turn cap, verified). *remaining:*
+   egress allowlist (low-risk until read-a-URL exists) + auth rate limiting (blocked on the parallel auth WIP). *size (rest):* **S**.
 5. **Web chat UI + one more channel** (B) — *why:* not everyone is on Telegram. *needs:* design gate for UI;
    WhatsApp/voice each need a persistent host + provider. *size:* **L** (design-gated).
 
