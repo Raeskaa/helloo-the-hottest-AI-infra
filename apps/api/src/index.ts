@@ -6,7 +6,7 @@ import { createAuth } from "@helloo/auth";
 import { ingestText, listMemory, recall } from "@helloo/memory";
 import { listOpenApprovals, decide } from "@helloo/trust";
 import { initiateConnection, listConnections, executeAction } from "@helloo/integrations";
-import { dueReminders, advanceReminder } from "@helloo/scheduler";
+import { dueReminders, advanceReminder, activeEmailWorkflows, markWorkflowSeen } from "@helloo/scheduler";
 import {
   parseTelegramUpdate,
   sendTelegramMessage,
@@ -389,6 +389,72 @@ app.post("/api/mcp/:token", async (c) => {
 // We don't offer a server-initiated SSE stream; tell clients POST-only (MCP spec allows 405 here).
 app.get("/api/mcp/:token", (c) => c.body(null, 405, { Allow: "POST" }));
 
+/** Narrow an unknown into a plain record (assertion-free; matches the toArgs pattern). */
+function toRecord(v: unknown): Record<string, unknown> {
+  return v !== null && typeof v === "object" && !Array.isArray(v) ? { ...v } : {};
+}
+/** Read a string field off a raw Gmail message object. */
+function emailField(m: unknown, key: string): string {
+  const v = toRecord(m)[key];
+  return typeof v === "string" ? v : "";
+}
+function gmailMessages(data: unknown): unknown[] {
+  const v = toRecord(data).messages;
+  return Array.isArray(v) ? v : [];
+}
+
+/**
+ * Fire event-triggered workflows: for each active email workflow, poll recent Gmail, act on NEW
+ * messages (newer than the last handled id) matching the filter by running the instruction as an
+ * agent turn and delivering the result. Baselines on first poll so it never fires on backlog.
+ */
+async function runEmailWorkflows(env: Bindings): Promise<void> {
+  const token = env.TELEGRAM_BOT_TOKEN;
+  const flows = await activeEmailWorkflows(env);
+  for (const wf of flows) {
+    try {
+      const res = await executeAction(env, wf.ownerId, "GMAIL_FETCH_EMAILS", { max_results: 15 });
+      if (!res.successful) continue;
+      const messages = gmailMessages(res.data);
+      const newest = messages[0];
+      const newestId = emailField(newest, "messageId");
+      if (newestId.length === 0) continue;
+      if (!wf.lastSeenId) {
+        await markWorkflowSeen(env, wf.id, newestId); // baseline — don't fire on existing mail
+        continue;
+      }
+      // Collect messages newer than the last handled one (newest-first until we hit it).
+      const fresh: unknown[] = [];
+      for (const m of messages) {
+        if (emailField(m, "messageId") === wf.lastSeenId) break;
+        fresh.push(m);
+      }
+      const matchFrom = (wf.matchFrom ?? "").toLowerCase();
+      const matchSubject = (wf.matchSubject ?? "").toLowerCase();
+      const matches = fresh
+        .filter((m) => {
+          const from = emailField(m, "sender").toLowerCase();
+          const subject = emailField(m, "subject").toLowerCase();
+          return (matchFrom === "" || from.includes(matchFrom)) && (matchSubject === "" || subject.includes(matchSubject));
+        })
+        .slice(0, 3) // cap firings per tick
+        .reverse(); // act oldest-first
+      const chatId = token && wf.channel === "telegram" ? await externalIdForOwner(env, "telegram", wf.ownerId) : null;
+      for (const m of matches) {
+        const context =
+          `An email arrived. From: ${emailField(m, "sender")}. Subject: ${emailField(m, "subject")}. ` +
+          `Preview: ${emailField(m, "preview") || emailField(m, "messageText").slice(0, 300)}.\n\n` +
+          `Your task: ${wf.instruction}`;
+        const reply = await runTurn(env, wf.ownerId, context);
+        if (token && chatId) await sendTelegramMessage(token, chatId, `⚡ ${wf.name}\n\n${reply}`);
+      }
+      await markWorkflowSeen(env, wf.id, newestId);
+    } catch {
+      // best-effort; next tick retries from the same baseline.
+    }
+  }
+}
+
 export { HelloAgent };
 
 export default {
@@ -404,6 +470,11 @@ export default {
       await runDueReminders(env);
     } catch {
       // best-effort; the next tick retries any still-due reminders.
+    }
+    try {
+      await runEmailWorkflows(env);
+    } catch {
+      // best-effort; the next tick retries from the same baseline.
     }
   },
 };

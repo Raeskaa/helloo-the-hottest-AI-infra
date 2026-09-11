@@ -42,3 +42,40 @@ export const reminder = pgTable(
     index("reminder_owner_idx").on(t.ownerId),
   ],
 );
+
+/**
+ * `workflow` — an event-triggered automation: WHEN a trigger fires, run `instruction` as an agent
+ * turn (multi-step, writes gated) and deliver the result on `channel`. v1 trigger = a new Gmail
+ * matching `match_from` / `match_subject`. The cron polls, dedups against `last_seen_id` (the newest
+ * message id already handled — set as a baseline on first poll so a workflow never fires on backlog),
+ * and fires on newer matches. Tenant-isolated by RLS; the cron reads across tenants via the owner
+ * connection (bypasses RLS).
+ */
+export const workflow = pgTable(
+  "workflow",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    ownerId: text("owner_id")
+      .notNull()
+      .references(() => user.id, { onDelete: "cascade" }),
+    helloId: text("hello_id")
+      .notNull()
+      .references(() => hello.id, { onDelete: "cascade" }),
+    name: text("name").notNull(),
+    triggerType: text("trigger_type").notNull().default("email"), // v1: "email"
+    matchFrom: text("match_from"), // substring on sender (null = any)
+    matchSubject: text("match_subject"), // substring on subject (null = any)
+    instruction: text("instruction").notNull(), // what the agent should do when it fires
+    channel: text("channel").notNull().default("telegram"),
+    status: text("status").notNull().default("active"), // "active" | "paused"
+    lastSeenId: text("last_seen_id"), // newest message id already handled (dedup baseline)
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+  },
+  (t) => [
+    index("workflow_active_idx").on(t.triggerType).where(sql`${t.status} = 'active'`),
+    index("workflow_owner_idx").on(t.ownerId),
+  ],
+);

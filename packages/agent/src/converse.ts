@@ -2,7 +2,14 @@ import { createGoogleGenerativeAI } from "@ai-sdk/google";
 import { generateText, stepCountIs, tool, type ToolSet } from "ai";
 import { z } from "zod";
 import { recall, findPeople, resolvePeople } from "@helloo/memory";
-import { scheduleReminder, listReminders, cancelReminder } from "@helloo/scheduler";
+import {
+  scheduleReminder,
+  listReminders,
+  cancelReminder,
+  createWorkflow,
+  listWorkflows,
+  deleteWorkflow,
+} from "@helloo/scheduler";
 import { gate, recordTurn, turnCap, type ProposedAction, type RiskLevel } from "@helloo/trust";
 import {
   getConnections,
@@ -217,6 +224,38 @@ export async function converse(
     description: "Cancel a scheduled reminder by id (get ids from helloo_list_reminders).",
     inputSchema: z.object({ id: z.string().describe("The reminder id to cancel") }),
     execute: async ({ id }) => ({ cancelled: await cancelReminder(env, ownerId, id) }),
+  });
+
+  // Workflows: event-triggered automations. v1 trigger = a new matching email; when it arrives the
+  // cron runs `instruction` as an agent turn (writes still gated) and delivers the result.
+  tools.helloo_create_workflow = tool({
+    description:
+      "Create an automation that runs WHEN a new email arrives matching a filter — e.g. 'when I get " +
+      "an email from my landlord, summarise it and tell me'. The instruction runs as an agent turn " +
+      "(any action it proposes is still queued for approval). Use for 'when X happens, do Y' requests.",
+    inputSchema: z.object({
+      name: z.string().describe("Short name for the automation"),
+      matchFrom: z.string().optional().describe("Only fire when the sender contains this (e.g. an email/name); omit for any"),
+      matchSubject: z.string().optional().describe("Only fire when the subject contains this; omit for any"),
+      instruction: z.string().describe("What helloo should do when it fires (it receives the email's from/subject/snippet)"),
+    }),
+    execute: async ({ name, matchFrom, matchSubject, instruction }) => {
+      if (!toolkits.includes("gmail")) {
+        return { error: "Email workflows need Gmail connected first." };
+      }
+      const r = await createWorkflow(env, ownerId, { name, matchFrom, matchSubject, instruction });
+      return { created: true, id: r.id };
+    },
+  });
+  tools.helloo_list_workflows = tool({
+    description: "List the user's active automations/workflows.",
+    inputSchema: z.object({}),
+    execute: async () => ({ workflows: await listWorkflows(env, ownerId) }),
+  });
+  tools.helloo_delete_workflow = tool({
+    description: "Delete an automation by id (get ids from helloo_list_workflows).",
+    inputSchema: z.object({ id: z.string().describe("The workflow id to delete") }),
+    execute: async ({ id }) => ({ deleted: await deleteWorkflow(env, ownerId, id) }),
   });
 
   // Web search (Tavily) — only when configured. The read primitive behind "what's the latest on…",
