@@ -94,13 +94,15 @@ Each: **what it is · done (with references) · remaining · what's needed to bu
 - **✅ Done:** Composio connect/reconnect from chat (`helloo_connect_account`, `allowMultiple` for expired);
   6 curated toolkits (Gmail, Calendar, Slack, Tasks, Docs, Sheets), reads autonomous, **writes gated**;
   `composio_identity` maps owner → Composio user.
-- **🔴 Remaining — the big one: MULTIPLE ACCOUNTS PER CONNECTOR** (e.g. one person's **4 Google accounts**).
-  Today it's effectively one account per toolkit; a second Gmail can be *connected* in Composio but there's no
-  way to **label it, choose it, or route a tool call to the right one**.
-- **Needs:** a `connection` table (owner, toolkit, composio connection id, label, is_default) → surface the
-  accounts to the model → when a write/read targets a toolkit with >1 account, the agent **asks which** (or
-  uses the default) → route `executeAction` to that specific connection id. Also: more toolkits (Notion,
-  Drive, LinkedIn…) = one line each in `CURATED` with a verified slug.
+- **✅ MULTIPLE ACCOUNTS PER CONNECTOR** (e.g. one person's **4 Google accounts**) — built & verified. A
+  `connection` table mirrors every Composio account (toolkit, id, label, is_default, status); exactly one
+  default per toolkit (among ACTIVE); `syncConnections` refreshes it each turn; `executeAction` routes reads
+  **and** gated writes to the toolkit's default via Composio's `connectedAccountId`. Agent tools:
+  `helloo_list_accounts` / `helloo_set_default_account` / `helloo_label_account`. *(Verified with real data:
+  4 Google Docs + 2 Slack accounts, correct defaults, switching the default via chat works.)*
+- **🔴 Remaining:** per-**call** account choice (a write schema can't carry "which account", so today it's the
+  default + switch); more toolkits (Notion, Drive, LinkedIn…) = one line each in `CURATED` with a verified
+  slug; a small perf pass (per-turn sync adds latency).
 
 ### E. Agent — "ask for things"
 - **What:** the reasoning loop that answers and acts.
@@ -176,10 +178,9 @@ Ordered by **leverage × dependency**. Phases map to `VERSIONS.md`. Each item: *
 size (S/M/L)**.
 
 ### Phase 1 — finish v1 for real daily use (now → next)
-1. **Multi-account connectors** (D) — *why:* people genuinely have 4 Google accounts; blocks daily use.
-   *needs:* `connection` table + account labels/default + tool routing + "which account?" disambiguation.
-   *size:* **M–L**.
-2. **People-graph auto-fill** (J) — *why:* makes the contact graph and nudges/wishes real; unifies "Manish".
+1. ✅ **Multi-account connectors** (D) — DONE & verified. `connection` table + default routing +
+   list/switch/label tools. *(Follow-ups: per-call account choice, perf pass, more toolkits.)*
+2. **People-graph auto-fill** (J) — *now the top open Phase-1 item* — *why:* makes the contact graph and nudges/wishes real; unifies "Manish".
    *needs:* extraction on ingest/read → `person_identity` + resolution/dedup. *size:* **M**.
 3. **MCP-as-a-channel** (C) — *why:* the horizontal-infra wedge; reach helloo inside Claude/ChatGPT.
    *needs:* MCP server endpoint (recall + gated tools) + per-user token. *size:* **M**.
