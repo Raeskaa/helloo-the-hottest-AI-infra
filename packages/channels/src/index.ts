@@ -5,3 +5,14 @@ export {
   type InboundMessage,
 } from "./telegram";
 export { createPendingLink, confirmLink, resolveOwner } from "./link";
+export {
+  getOnboarding,
+  startOnboarding,
+  setAwaitingOtp,
+  clearOnboarding,
+  bindChannel,
+  looksLikeEmail,
+  extractOtp,
+  type OnboardingStage,
+  type OnboardingState,
+} from "./onboarding";

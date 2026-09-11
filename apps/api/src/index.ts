@@ -13,6 +13,13 @@ import {
   createPendingLink,
   confirmLink,
   resolveOwner,
+  getOnboarding,
+  startOnboarding,
+  setAwaitingOtp,
+  clearOnboarding,
+  bindChannel,
+  looksLikeEmail,
+  extractOtp,
 } from "@helloo/channels";
 import { HelloAgent } from "./hello-agent";
 import type { AppEnv } from "@helloo/core";
@@ -44,6 +51,89 @@ async function runTurn(env: Bindings, owner: string, message: string): Promise<s
   const reply = parsed.data.reply && parsed.data.reply.length > 0 ? parsed.data.reply : "…";
   const pending = parsed.data.pendingApprovals?.length ?? 0;
   return pending > 0 ? `${reply}\n\n(⏳ ${pending} action(s) need your approval in the app.)` : reply;
+}
+
+/**
+ * Sign a brand-new user up from inside the chat: ask email → send OTP → verify → create the account
+ * and link this chat. Runs when an inbound message comes from a chat with no owner yet.
+ */
+async function handleOnboarding(
+  env: Bindings,
+  token: string,
+  chatId: string,
+  text: string,
+): Promise<void> {
+  const channel = "telegram";
+  const state = await getOnboarding(env, channel, chatId);
+
+  if (!state) {
+    await startOnboarding(env, channel, chatId);
+    await sendTelegramMessage(
+      token,
+      chatId,
+      "👋 Welcome to helloo — your own personal AI. Let's set you up.\n\nWhat's your email address?",
+    );
+    return;
+  }
+
+  if (/^\s*(restart|reset|change email)\s*$/i.test(text)) {
+    await startOnboarding(env, channel, chatId);
+    await sendTelegramMessage(token, chatId, "No problem — what email should I use?");
+    return;
+  }
+
+  if (state.stage === "awaiting_email") {
+    if (!looksLikeEmail(text)) {
+      await sendTelegramMessage(token, chatId, "That doesn't look like an email. Send me your email address to continue.");
+      return;
+    }
+    const email = text.trim();
+    // Email OTP via Better Auth (delivers through Resend in prod; falls back to logs until the key is set).
+    await createAuth(env).api.sendVerificationOTP({ body: { email, type: "sign-in" } });
+    await setAwaitingOtp(env, channel, chatId, email);
+    await sendTelegramMessage(
+      token,
+      chatId,
+      `📧 I sent a 6-digit code to ${email}. Paste it here to finish.\n\n(Say "restart" to use a different email.)`,
+    );
+    return;
+  }
+
+  // awaiting_otp
+  const otp = extractOtp(text);
+  if (!otp) {
+    await sendTelegramMessage(token, chatId, 'Paste the 6-digit code I emailed you, or say "restart" to use a different email.');
+    return;
+  }
+  const email = state.email;
+  if (!email) {
+    await startOnboarding(env, channel, chatId);
+    await sendTelegramMessage(token, chatId, "Something went off-track — what's your email?");
+    return;
+  }
+  // Verify the OTP; on first sign-in Better Auth creates the account and returns the owner id.
+  let userId: string | null = null;
+  try {
+    const res = await createAuth(env).api.signInEmailOTP({ body: { email, otp } });
+    userId = res.user.id;
+  } catch {
+    userId = null;
+  }
+  if (!userId) {
+    await sendTelegramMessage(
+      token,
+      chatId,
+      'That code didn\'t work — it may have expired. Paste the latest code, or say "restart" for a new one.',
+    );
+    return;
+  }
+  await bindChannel(env, channel, userId, chatId);
+  await clearOnboarding(env, channel, chatId);
+  await sendTelegramMessage(
+    token,
+    chatId,
+    "✅ You're in — this chat is now your helloo.\n\nTry \"what can you do?\", or ask me to connect an account (like Gmail) and I'll send you a link.",
+  );
 }
 
 // Reflect the request origin with credentials so the browser client can hold
@@ -223,7 +313,8 @@ app.post("/api/channels/telegram/webhook", async (c) => {
     }
     const owner = await resolveOwner(c.env, "telegram", msg.chatId);
     if (!owner) {
-      await sendTelegramMessage(token, msg.chatId, "Link this chat to your helloo first (open the link from the app).");
+      // No account yet — sign the user up from inside the chat (ask email → OTP → verify → link).
+      await handleOnboarding(c.env, token, msg.chatId, msg.text);
       return c.json({ ok: true });
     }
     // Run the turn synchronously on the request's full budget (Telegram waits up to ~60s), then
