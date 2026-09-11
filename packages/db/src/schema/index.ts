@@ -3,5 +3,6 @@
 export * from "./auth";
 export * from "./membrane";
 export * from "./people";
+export * from "./scheduler";
 export * from "./trust";
 export * from "./channels";

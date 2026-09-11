@@ -20,6 +20,7 @@ Import old entities/entity_mentions,80 legacy people imported from helloo-brain 
 WhatsApp channel via Baileys (user's own account on sandbox),Expose API; different risk than banned Business-API bot,Todo,Medium,channels
 Telephony: agents with phone numbers (call/receive),Buy the pipe; call helloo + agent-initiated calls,Todo,Medium,channels;voice
 helloo-as-MCP-server channel,Reachable inside Claude/ChatGPT,Todo,Low,channels
+Proactive scheduler (reminders + recurring briefs),"reminder table (RLS) + @helloo/scheduler + agent tools (schedule/list/cancel) + cron delivery (say/run modes, daily/weekly). Verified E2E: scheduled via chat, cron fired + delivered to Telegram + advanced.",Done,Urgent,scheduler;agent;runtime
 In-Telegram onboarding (email -> OTP -> account + link),"New user signs up from inside the chat: ask email, send OTP, verify, create account + channel_link, clear state. Verified E2E (user + link created, chat then operates). channel_onboarding table + auth OTP helpers.",Done,High,auth;channels;onboarding
 Set Resend key in prod so onboarding codes actually send,"Onboarding flow is live but OTP delivery falls back to logs until RESEND_API_KEY is set as a CF secret",Todo,High,auth;ops
 Activate Telegram webhook secret,Set TELEGRAM_WEBHOOK_SECRET + re-setWebhook secret_token,Done,Medium,security

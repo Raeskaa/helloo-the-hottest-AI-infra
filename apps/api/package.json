@@ -17,6 +17,7 @@
     "@helloo/db": "workspace:*",
     "@helloo/integrations": "workspace:*",
     "@helloo/memory": "workspace:*",
+    "@helloo/scheduler": "workspace:*",
     "@helloo/trust": "workspace:*",
     "hono": "^4.9.0",
     "zod": "^4.5.4"

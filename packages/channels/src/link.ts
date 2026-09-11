@@ -54,3 +54,17 @@ export async function resolveOwner(
     .limit(1);
   return rows[0]?.ownerId ?? null;
 }
+
+/** The confirmed external id (e.g. Telegram chat) to reach an owner on a channel, or null. */
+export async function externalIdForOwner(
+  env: AppEnv,
+  channel: string,
+  ownerId: string,
+): Promise<string | null> {
+  const rows = await getDb(env.DATABASE_URL)
+    .select({ externalId: channelLink.externalId })
+    .from(channelLink)
+    .where(and(eq(channelLink.channel, channel), eq(channelLink.ownerId, ownerId)))
+    .limit(1);
+  return rows[0]?.externalId ?? null;
+}

@@ -44,6 +44,7 @@ what matters. Reads are automatic; **every write is gated — helloo asks first.
 - **👥 People** — look someone up by name/email/handle and get how to reach them (contact graph, filling in).
 - **🔌 Connect from chat** — when helloo needs an account it isn't on, it hands you a link to authorize (and reconnects expired ones).
 - **🆕 Sign up from inside the chat** — a brand-new person messages the bot → it asks their email → sends a code → verifies → creates their account and links the chat, no web step. *(Code delivery needs the email key set in prod to actually send; the flow itself is live.)*
+- **⏰ Proactive reminders & briefs** — helloo can message you *first*: one-off reminders or recurring (daily/weekly) briefs, delivered on a schedule. Ask "remind me at 8am to…" or "every morning summarise my day." *(The first thing that isn't reply-only.)*
 - **🛡️ Trust layer** — approve-before-act on every consequential action, with an audit log. It never moves money or sends silently.
 - **📲 Reachable on Telegram** — the first channel; more coming.
 
@@ -53,13 +54,12 @@ Full capability + response map: [`docs/SCENARIOS.md`](docs/SCENARIOS.md). What r
 
 Ordered by leverage — each primitive unlocks a whole cluster of requested features:
 
-1. **Proactive / scheduled triggers** — reminders, morning briefs, nudges (helloo today only replies when messaged). *The single biggest unlock.*
-2. **Web / news / research** — headlines, markets, company research, world updates tied to your work.
-3. **More channels** — **WhatsApp** (your own account, Baileys sandbox) and **voice / telephony** (call helloo; it can call).
-4. **Cross-channel identity** — unify one person across email / Slack / WhatsApp / phones (people graph auto-fill).
-5. **Verticals** — shopping/cart, ride booking, LinkedIn; plus a two-LLM debate mode.
+1. **Web / news / research** — headlines, markets, company research, world updates tied to your work. *Also makes the daily brief genuinely useful.*
+2. **More channels** — **WhatsApp** (your own account, Baileys sandbox), **voice / telephony** (call helloo; it can call), and **helloo-as-MCP** (reach helloo from inside Claude / ChatGPT).
+3. **Cross-channel identity** — unify one person across email / Slack / WhatsApp / phones (people-graph auto-fill), so nudges/wishes derive *who & when* automatically.
+4. **Verticals** — shopping/cart, ride booking, LinkedIn; plus a two-LLM debate mode.
 
-*(Self-serve in-channel onboarding is now built — see the capability list above; it just needs the email key set in prod to deliver codes to real users.)*
+*(Proactive scheduling and self-serve in-channel onboarding are now built — see the capability list above. Onboarding just needs the email key set in prod to deliver codes to real users.)*
 
 Detailed status: [`docs/BACKLOG.md`](docs/BACKLOG.md) · [`docs/linear-import.csv`](docs/linear-import.csv).
 

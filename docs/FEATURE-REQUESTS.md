@@ -97,14 +97,15 @@ user's voice, LLM reasoning, connect-from-chat). Some need a connected account o
 
 The requests cluster around a few missing **primitives**. Building each unlocks many asks at once.
 
-### A. Proactive / scheduled triggers  *(the single biggest unlock)*
-helloo currently **only responds when messaged** — it can't yet start a message on its own. Almost every
-"remind me / notify me / daily brief / wish them" ask needs this.
-- 🔴 Reminders that fire on a schedule or from your routine (R3.1, R7, R8.1, "reminds me everything")
-- 🔴 Daily brief — world/market/work news each morning (R1.1, R8.7, R7)
-- 🔴 Nudges: connect with family, take care of who needs attention today, maintain relationships, wish on special days (R3.2, R3.5, R3.6, R4.1, R6)
-- 🔴 Health nudges: hydrate, calories, medicine, sleep (R3.2, R7)
-- 🔴 "Report automatically after finishing a task" (R8.3)
+### A. Proactive / scheduled triggers  *(the single biggest unlock — foundation now BUILT ✅)*
+helloo can now **message you first**: a cron-driven scheduler delivers reminders and recurring briefs.
+Ask *"remind me…"* or *"every morning tell me…"* and it schedules it (one-off / daily / weekly),
+then delivers on your channel — either a plain reminder or a live agent brief. *Verified E2E in prod.*
+- ✅ Reminders that fire at a time or recur (R3.1, R7, R8.1, "reminds me everything") — **built** (`helloo_schedule_reminder`)
+- 🟡 Daily brief — a "run" reminder can already summarise your day/inbox each morning (R1.1-partial, R8.7, R7); market/world news still needs web search (§B)
+- 🟡 Nudges: family, relationships, special-day wishes (R3.2, R3.5, R3.6, R4.1, R6) — schedulable now; auto-deriving *who/when* from the people graph is next
+- ✅ Health nudges: hydrate, medicine, sleep on a schedule (R3.2, R7) — **built**
+- 🟡 "Report automatically after finishing a task" (R8.3) — schedulable; task-completion detection is separate
 
 ### B. Web / news / research
 - 🔴 Overnight markets, headlines, portfolio-affecting news (R1.1, R1.2)
@@ -115,8 +116,10 @@ helloo currently **only responds when messaged** — it can't yet start a messag
 - 🔴 Talk to helloo by voice (R1.4, R3.3)
 - 🔴 Auto-pick-up / place calls on your behalf (R5.3, R6.6)
 
-### D. WhatsApp as a channel *(user's own account)*
-- 🔴 Read/act on WhatsApp chats; reachable on WhatsApp (R3.3, R8.2) — Baileys sandbox path (see the ban note).
+### D. More channels
+- 🔴 **WhatsApp** (user's own account): read/act on WhatsApp chats; reachable on WhatsApp (R3.3, R8.2) — Baileys sandbox path (see the ban note).
+- 🔴 **helloo as an MCP server** — reach helloo (its memory + tools) from inside Claude / ChatGPT / any MCP client. *(Already tracked in the plan; the horizontal-infra play — added per Mahesh's request.)*
+- 🔴 **Voice / telephony** — see §C.
 
 ### E. People / sentiment intelligence
 - 🟡 People graph exists (names → contact points); **cross-channel unification is being filled in** (R3.6, R4.1)
@@ -138,7 +141,8 @@ helloo currently **only responds when messaged** — it can't yet start a messag
 - 🔴 **Two-LLM debate to consensus** (R8.4) — a self-review loop between models; buildable on our agent as a distinct mode.
 
 ## 4. Signal summary (what to build first)
-1. **Proactive scheduler** — unlocks the most-requested cluster (reminders, briefs, nudges, wishes, health).
-2. **Web/news search tool** — unlocks research, markets, world updates, company culture.
-3. **WhatsApp channel** + **voice** — the two channels people keep naming.
-4. Then verticals (shopping, ride, LinkedIn) as connectors, and the multi-LLM debate mode.
+1. ✅ **Proactive scheduler** — DONE (reminders + recurring briefs). Most-requested cluster now unlockable.
+2. **Web/news search tool** — next; unlocks research, markets, world updates, company culture (§B). *Also makes the daily brief genuinely useful.*
+3. **Channels** — **WhatsApp**, **voice/telephony**, and **helloo-as-MCP** (reachable inside Claude/ChatGPT).
+4. **People-graph auto-fill** — so nudges/wishes derive *who & when* automatically.
+5. Then verticals (shopping, ride, LinkedIn) as connectors, and the multi-LLM debate mode.

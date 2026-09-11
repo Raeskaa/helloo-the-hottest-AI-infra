@@ -6,6 +6,7 @@ import { createAuth } from "@helloo/auth";
 import { ingestText, listMemory, recall } from "@helloo/memory";
 import { listOpenApprovals, decide } from "@helloo/trust";
 import { initiateConnection, listConnections, executeAction } from "@helloo/integrations";
+import { dueReminders, advanceReminder } from "@helloo/scheduler";
 import {
   parseTelegramUpdate,
   sendTelegramMessage,
@@ -13,6 +14,7 @@ import {
   createPendingLink,
   confirmLink,
   resolveOwner,
+  externalIdForOwner,
   getOnboarding,
   startOnboarding,
   setAwaitingOtp,
@@ -329,16 +331,46 @@ app.post("/api/channels/telegram/webhook", async (c) => {
   return c.json({ ok: true });
 });
 
+/**
+ * Deliver every reminder that's due (the proactive scheduler). Runs on the cron: scan due rows
+ * across all users, deliver on their channel ("say" = the text; "run" = an agent turn), then
+ * advance recurring rows / complete one-offs. Always advances, even on a delivery error, so a
+ * broken reminder can't re-fire every tick.
+ */
+async function runDueReminders(env: Bindings): Promise<void> {
+  const token = env.TELEGRAM_BOT_TOKEN;
+  const now = new Date();
+  const due = await dueReminders(env, now, 10);
+  for (const r of due) {
+    try {
+      const chatId =
+        token && r.channel === "telegram" ? await externalIdForOwner(env, "telegram", r.ownerId) : null;
+      if (token && chatId) {
+        const text = r.mode === "run" ? await runTurn(env, r.ownerId, r.body) : `⏰ ${r.body}`;
+        await sendTelegramMessage(token, chatId, text);
+      }
+    } catch {
+      // best-effort delivery; still advance below so it doesn't wedge.
+    }
+    await advanceReminder(env, r, now).catch(() => {});
+  }
+}
+
 export { HelloAgent };
 
 export default {
   fetch: app.fetch,
-  // Cron warm-up: a trivial query keeps Neon's compute from suspending (prod only).
-  async scheduled(_event: ScheduledController, env: AppEnv, _ctx: ExecutionContext): Promise<void> {
+  // Cron: warm Neon (so cold-start can't drop a reply) then deliver any due reminders (prod only).
+  async scheduled(_event: ScheduledController, env: Bindings, _ctx: ExecutionContext): Promise<void> {
     try {
       await pingDb(env.DATABASE_URL);
     } catch {
       // best-effort; a failed warm-up just means the next real request wakes it.
+    }
+    try {
+      await runDueReminders(env);
+    } catch {
+      // best-effort; the next tick retries any still-due reminders.
     }
   },
 };

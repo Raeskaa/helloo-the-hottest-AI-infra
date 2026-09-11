@@ -2,6 +2,7 @@ import { createGoogleGenerativeAI } from "@ai-sdk/google";
 import { generateText, stepCountIs, tool, type ToolSet } from "ai";
 import { z } from "zod";
 import { recall, findPeople } from "@helloo/memory";
+import { scheduleReminder, listReminders, cancelReminder } from "@helloo/scheduler";
 import { gate, type ProposedAction, type RiskLevel } from "@helloo/trust";
 import {
   connectedToolkits,
@@ -124,6 +125,55 @@ export async function converse(
     },
   });
 
+  // Proactive scheduling: helloo can message the user LATER — a one-off reminder or a recurring
+  // brief. The Worker's cron delivers due reminders; these tools just create/list/cancel them.
+  tools.helloo_schedule_reminder = tool({
+    description:
+      "Schedule helloo to message the user at a future time — a one-off reminder or a recurring " +
+      "brief. Use whenever the user asks to be reminded, nudged, or briefed later/daily/weekly. " +
+      "runAt is an ISO 8601 UTC timestamp in the future (compute it from the current time given " +
+      "below). If the user gives a wall-clock time and you don't know their timezone, ask first.",
+    inputSchema: z.object({
+      runAt: z.string().describe("First fire time, ISO 8601 UTC, e.g. 2026-09-12T08:00:00Z. Must be future."),
+      repeat: z.enum(["none", "daily", "weekly"]).describe("Recurrence"),
+      mode: z
+        .enum(["say", "run"])
+        .describe(
+          "'say' = deliver body text as-is (a plain reminder). 'run' = run body as an instruction " +
+            "and deliver the result (a brief, e.g. 'summarise today's calendar and unread email').",
+        ),
+      body: z.string().describe("The reminder text (say) or the instruction to run (run)."),
+    }),
+    execute: async ({ runAt, repeat, mode, body }) => {
+      const when = new Date(runAt);
+      if (Number.isNaN(when.getTime())) return { error: "runAt must be a valid ISO 8601 datetime" };
+      if (when.getTime() < Date.now() - 60_000) return { error: "runAt is in the past" };
+      const r = await scheduleReminder(env, ownerId, { mode, body, repeat, nextRunAt: when });
+      return { scheduled: true, id: r.id, nextRunAt: r.nextRunAt.toISOString(), repeat: r.repeat };
+    },
+  });
+  tools.helloo_list_reminders = tool({
+    description: "List the user's active scheduled reminders and briefs.",
+    inputSchema: z.object({}),
+    execute: async () => {
+      const items = await listReminders(env, ownerId);
+      return {
+        reminders: items.map((r) => ({
+          id: r.id,
+          when: r.nextRunAt.toISOString(),
+          repeat: r.repeat,
+          mode: r.mode,
+          body: r.body,
+        })),
+      };
+    },
+  });
+  tools.helloo_cancel_reminder = tool({
+    description: "Cancel a scheduled reminder by id (get ids from helloo_list_reminders).",
+    inputSchema: z.object({ id: z.string().describe("The reminder id to cancel") }),
+    execute: async ({ id }) => ({ cancelled: await cancelReminder(env, ownerId, id) }),
+  });
+
   const connectedLabels = toolkits.map((t) => TOOLKIT_LABELS[t] ?? t);
   const connectableLabels = connectable.map((t) => TOOLKIT_LABELS[t] ?? t);
 
@@ -146,7 +196,11 @@ export async function converse(
       "MISSING ACCOUNT: if something needs an account that isn't connected, call " +
       "helloo_connect_account and give the user the link to authorize — don't just refuse. Only the " +
       "accounts below can be connected; for anything else, say it's not supported yet.\n\n" +
+      "SCHEDULING: you can message the user later — use helloo_schedule_reminder for a reminder or a " +
+      "recurring brief (daily/weekly). Compute runAt as an ISO 8601 UTC time from the current time " +
+      "below; if the user names a wall-clock time and you don't know their timezone, ask for it first.\n\n" +
       "If a tool errors or returns nothing, say so plainly and suggest the next step.\n\n" +
+      `Current time (UTC): ${new Date().toISOString()}.\n` +
       `Connected accounts: ${connectedLabels.length ? connectedLabels.join(", ") : "none"}.\n` +
       `Can be connected on request: ${connectableLabels.length ? connectableLabels.join(", ") : "none"}.\n` +
       `What you remember about the user:\n${memoryContext}`,

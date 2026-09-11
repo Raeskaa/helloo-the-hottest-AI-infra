@@ -4,7 +4,7 @@ export {
   sendTelegramTyping,
   type InboundMessage,
 } from "./telegram";
-export { createPendingLink, confirmLink, resolveOwner } from "./link";
+export { createPendingLink, confirmLink, resolveOwner, externalIdForOwner } from "./link";
 export {
   getOnboarding,
   startOnboarding,
