@@ -28,6 +28,7 @@ import {
   type ConnectionState,
 } from "@helloo/integrations";
 import type { AppEnv } from "@helloo/core";
+import { createAgent, listAgents, deleteAgent, getAgentByName } from "./agents";
 
 /**
  * The daily loop (SYSTEM-MAP §3): recall memory → the model answers grounded in it, using the
@@ -74,16 +75,30 @@ function summarize(slug: string, args: Record<string, unknown>): string {
   return bits.length ? `${slug} (${bits.join(", ")})` : slug;
 }
 
+/** Options for a delegated (sub-agent) run — see helloo_ask_agent. */
+export interface ConverseOptions {
+  /** A custom-agent persona appended to the base system prompt. */
+  persona?: string;
+  /** Restrict Composio tools to this subset of the user's connected toolkits. */
+  scopeToolkits?: string[];
+  /** True when running as a delegated sub-agent: skips the spend cap (the outer turn counted it) and
+   * the helloo-management tools (connect, reminders, workflows, agents…) to stay task-focused. */
+  isSubAgent?: boolean;
+}
+
 export async function converse(
   env: AppEnv,
   ownerId: string,
   message: string,
+  opts: ConverseOptions = {},
 ): Promise<ConverseResult> {
   if (!env.GEMINI_API_KEY) throw new Error("GEMINI_API_KEY is required for the agent loop");
+  const isMain = !opts.isSubAgent;
 
   // Spend guard: count this turn and stop if the owner is over their daily cap (fail-open on error,
-  // since the cap is abuse protection, not a critical-path check).
-  const budget = await recordTurn(env, ownerId, turnCap(env)).catch(() => null);
+  // since the cap is abuse protection, not a critical-path check). Sub-agent runs skip it — the
+  // outer turn already counted.
+  const budget = isMain ? await recordTurn(env, ownerId, turnCap(env)).catch(() => null) : null;
   if (budget && !budget.allowed) {
     return {
       reply: `You've reached today's usage limit (${budget.cap} messages). It resets tomorrow — talk to you then.`,
@@ -99,7 +114,10 @@ export async function converse(
     // stale — so the hot path avoids a Composio round-trip + N writes every turn.
     getConnections(env, ownerId).catch((): ConnectionState => ({ toolkits: [], accounts: [] })),
   ]);
-  const toolkits = conn.toolkits;
+  // A sub-agent may be scoped to a subset of the user's connected toolkits.
+  const toolkits = opts.scopeToolkits
+    ? conn.toolkits.filter((t) => opts.scopeToolkits?.includes(t))
+    : conn.toolkits;
   const accounts = conn.accounts;
   const memoryContext =
     hits.map((h) => `- ${h.atom.factText}`).join("\n") || "(nothing remembered yet)";
@@ -122,7 +140,7 @@ export async function converse(
   // Connect-when-missing: let helloo offer to connect an account it doesn't have yet instead of
   // dead-ending. This only produces an OAuth link the user opens themselves, so it runs autonomously.
   const connectable = SUPPORTED_TOOLKITS.filter((t) => !toolkits.includes(t));
-  if (connectable.length > 0) {
+  if (isMain && connectable.length > 0) {
     tools.helloo_connect_account = tool({
       description:
         "Start connecting one of the user's accounts so helloo can use it. Returns a link the user " +
@@ -158,7 +176,7 @@ export async function converse(
 
   // People auto-fill: build/refresh the contact graph from the user's Gmail (senders → people,
   // unifying anyone already known by name). Only when Gmail is connected.
-  if (toolkits.includes("gmail")) {
+  if (isMain && toolkits.includes("gmail")) {
     tools.helloo_import_contacts = tool({
       description:
         "Scan the user's recent Gmail and add the people they correspond with to their contact graph " +
@@ -177,6 +195,9 @@ export async function converse(
     });
   }
 
+  // Management tools (scheduling, workflows, accounts, sub-agents) are for the MAIN helloo only —
+  // a delegated sub-agent stays focused on the task with just the action + lookup tools.
+  if (isMain) {
   // Proactive scheduling: helloo can message the user LATER — a one-off reminder or a recurring
   // brief. The Worker's cron delivers due reminders; these tools just create/list/cancel them.
   tools.helloo_schedule_reminder = tool({
@@ -257,6 +278,7 @@ export async function converse(
     inputSchema: z.object({ id: z.string().describe("The workflow id to delete") }),
     execute: async ({ id }) => ({ deleted: await deleteWorkflow(env, ownerId, id) }),
   });
+  } // end isMain (scheduling + workflows)
 
   // Web search (Tavily) — only when configured. The read primitive behind "what's the latest on…",
   // news, research, and the daily brief.
@@ -277,6 +299,7 @@ export async function converse(
     });
   }
 
+  if (isMain) {
   // Multi-account: let the user see/switch/rename accounts when they have several of one kind.
   tools.helloo_list_accounts = tool({
     description:
@@ -326,6 +349,56 @@ export async function converse(
     },
   });
 
+  // Make-an-agent: create/list/delete custom agents (personas), and delegate a task to one.
+  tools.helloo_create_agent = tool({
+    description:
+      "Create a custom agent — a named persona the user can delegate to (e.g. a 'Recruiter' that writes " +
+      "cold emails, or a 'Coach'). Use when the user asks to make/set up an agent or assistant persona.",
+    inputSchema: z.object({
+      name: z.string().describe("Short name, e.g. 'Recruiter'"),
+      persona: z.string().describe("Instructions defining how this agent behaves and what it's for"),
+      description: z.string().optional().describe("One-line description"),
+      toolkits: z.array(z.string()).optional().describe("Restrict to these connected apps (e.g. ['gmail']); omit for all"),
+    }),
+    execute: async ({ name, persona, description, toolkits: tk }) => {
+      const r = await createAgent(env, ownerId, { name, persona, description, toolkits: tk });
+      return { created: true, id: r.id, name };
+    },
+  });
+  tools.helloo_list_agents = tool({
+    description: "List the user's custom agents.",
+    inputSchema: z.object({}),
+    execute: async () => {
+      const list = await listAgents(env, ownerId);
+      return { agents: list.map((a) => ({ name: a.name, description: a.description, toolkits: a.toolkits })) };
+    },
+  });
+  tools.helloo_delete_agent = tool({
+    description: "Delete a custom agent by name.",
+    inputSchema: z.object({ name: z.string().describe("The agent's name") }),
+    execute: async ({ name }) => ({ deleted: await deleteAgent(env, ownerId, name) }),
+  });
+  tools.helloo_ask_agent = tool({
+    description:
+      "Delegate a task to one of the user's custom agents (get names from helloo_list_agents). Use when " +
+      "the user says 'ask my <name> agent to …' or a task fits a persona they created.",
+    inputSchema: z.object({
+      agent: z.string().describe("The custom agent's name"),
+      task: z.string().describe("What to ask that agent to do"),
+    }),
+    execute: async ({ agent: agentName, task }) => {
+      const a = await getAgentByName(env, ownerId, agentName);
+      if (!a) return { error: `No agent named "${agentName}". Create one with helloo_create_agent.` };
+      const sub = await converse(env, ownerId, task, {
+        persona: a.persona,
+        scopeToolkits: a.toolkits ?? undefined,
+        isSubAgent: true,
+      });
+      return { agent: a.name, reply: sub.reply, pendingApprovals: sub.pendingApprovals.length };
+    },
+  });
+  } // end isMain (accounts + agents)
+
   // Only mention accounts in the prompt when a toolkit has more than one (otherwise it's noise).
   const activeAccounts = accounts.filter((a) => a.status === "ACTIVE");
   const counts = new Map<string, number>();
@@ -349,6 +422,10 @@ export async function converse(
     system:
       "You are the user's helloo — their own personal AI. First person, concise, warm, plain " +
       "language. No corporate filler, no 'As an AI'.\n\n" +
+      (opts.persona
+        ? `You are acting as the user's custom agent. Persona/instructions:\n${opts.persona}\n\n`
+        : "The user can create custom agents (personas) and delegate to them — use helloo_create_agent " +
+          "when they ask to make one, and helloo_ask_agent to hand a task to one.\n\n") +
       "GROUNDING: Answer from what you remember about them (below), their connected accounts (via " +
       "tools), and general knowledge. If a personal fact isn't in memory or an account, say you " +
       "don't know it yet — never invent names, numbers, dates, or events.\n\n" +
