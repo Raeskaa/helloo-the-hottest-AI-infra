@@ -102,7 +102,8 @@ Each: **what it is · done (with references) · remaining · what's needed to bu
   4 Google Docs + 2 Slack accounts, correct defaults, switching the default via chat works.)*
 - **🔴 Remaining:** per-**call** account choice (a write schema can't carry "which account", so today it's the
   default + switch); more toolkits (Notion, Drive, LinkedIn…) = one line each in `CURATED` with a verified
-  slug; a small perf pass (per-turn sync adds latency).
+  slug. *(Perf: sync is now throttled — reads the mirror, re-syncs only when stale; `helloo_refresh_accounts`
+  forces one. Email-read turn 28.8s → 16.5s.)*
 
 ### E. Agent — "ask for things"
 - **What:** the reasoning loop that answers and acts.
