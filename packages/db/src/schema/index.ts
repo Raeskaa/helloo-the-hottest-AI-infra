@@ -2,5 +2,6 @@
 // (do not hand-edit); `membrane.ts` is the hand-written record layer (ADR-0002).
 export * from "./auth";
 export * from "./membrane";
+export * from "./people";
 export * from "./trust";
 export * from "./channels";

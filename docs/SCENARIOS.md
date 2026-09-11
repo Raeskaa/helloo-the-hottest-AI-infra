@@ -18,7 +18,10 @@ routed through the trust gate and queued for the user's approval.
 | **Google Calendar** | `EVENTS_LIST`, `FIND_FREE_SLOTS` | `CREATE_EVENT`, `UPDATE_EVENT`, `DELETE_EVENT` ⛔irreversible |
 | **Slack** | `FIND_CHANNELS`, `FIND_USERS`, `FETCH_CONVERSATION_HISTORY`, `SEARCH_MESSAGES` | `SEND_MESSAGE` |
 | **Google Tasks** | `LIST_TASKS` | `INSERT_TASK` |
+| **Google Docs** | `SEARCH_DOCUMENTS`, `GET_DOCUMENT_PLAINTEXT` | `CREATE_DOCUMENT_MARKDOWN` |
+| **Google Sheets** | `SEARCH_SPREADSHEETS`, `VALUES_GET` | `CREATE_SPREADSHEET_ROW` (append) |
 | **Memory** | semantic + keyword recall over the user's owned atoms | (writes happen via background ingest, not a tool) |
+| **People** | `helloo_find_person` → look someone up by name/email/handle → their resolved contact points | — |
 | **Connect** | `helloo_connect_account` → returns an OAuth link for any supported-but-unconnected account | — |
 
 ⛔irreversible = the trust gate treats send/reply/forward/delete as the highest risk tier.
@@ -95,19 +98,29 @@ Each: **user says → what happens → response template.** `{…}` = fill from 
 - **"What can you do?"** → list connected + connectable succinctly.
   **Template:** `Right now I can read/act on {connected list} (I always ask before sending or changing anything), and remember things you tell me. I can also connect {connectable list} when you want.`
 
-### I. Cross-channel / people  *(not built yet — L2/L3, BACKLOG #3)*
-- **"What's everything Manish has told me across email + Slack + WhatsApp?"**
-  **Template:** `I can't yet unify one person across channels — that's the people-graph I'm being built. For now I can check them per-account: want their recent email, or Slack?`
+### I. People / contacts  *(name lookup live; cross-channel unification in progress — BACKLOG #3)*
+- **"Who is Manish?" / "What's {person}'s email?"** → `helloo_find_person`.
+  **Template:** `{name} — {kind}. Reachable at {identities: channel value…}.` If no identities yet: `I know {name} but don't have their contact details yet.`
+- **"Everything Manish told me across email + Slack + WhatsApp?"** → the person exists in the graph, but
+  identities/mentions aren't yet auto-extracted from live channels.
+  **Template:** `I know {name}, but I'm still learning which emails/handles are theirs across channels. I can check a specific account — want their recent email or Slack?`
 
-### J. Errors
+### J. Docs / Sheets
+- **"Find my {doc} / read {doc}"** → `SEARCH_DOCUMENTS` → `GET_DOCUMENT_PLAINTEXT`.
+  **Template:** `{summary of the doc}.`
+- **"Make a doc about {…}" / "Add a row to {sheet}"** → `CREATE_DOCUMENT_MARKDOWN` / `CREATE_SPREADSHEET_ROW` (gated).
+  **Template:** `Ready to {create the doc | add that row}. Waiting for your approval.`
+
+### K. Errors
 - **Cold DB / tool timeout** → **Template:** `I hit a snag reaching {thing} just now — try again in a moment.`
 - **Empty result** → **Template:** `Nothing came back for {query}. Want me to widen it?`
 
 ## 4. Not supported yet (say so, don't fake it)
 Slack: posting is gated but reactions/reminders/files aren't wired · Gmail: labels/filters/attachments
-not exposed · Docs / Sheets / Drive: no tools · WhatsApp: no channel (see the ban note) · Telephony:
-none · Cross-channel identity / people graph: not built · Proactive/scheduled messages: none (helloo
-only responds when messaged).
+not exposed · Drive: no tools · WhatsApp: no channel (see the ban note) · Telephony: none · People
+graph: name lookup works, but identities/mentions aren't yet auto-extracted from live channels (so
+cross-channel unification is partial) · Proactive/scheduled messages: none (helloo only responds when
+messaged).
 
 ## 5. Wiring notes
 - Templates 2.1–2.5 + the per-category shapes live in the `converse` system prompt. When you change

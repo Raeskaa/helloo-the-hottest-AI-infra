@@ -25,6 +25,12 @@ export {
 } from "./embedding";
 export { recall, type RecallHit } from "./recall";
 export {
+  findPeople,
+  listPeople,
+  type PersonRecord,
+  type PersonIdentityRecord,
+} from "./people";
+export {
   membraneSelfTest,
   type MembraneSelfTestResult,
   ingestSelfTest,

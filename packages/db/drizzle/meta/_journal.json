@@ -85,6 +85,20 @@
       "when": 1788895296292,
       "tag": "0011_bumpy_living_tribunal",
       "breakpoints": true
+    },
+    {
+      "idx": 12,
+      "version": "7",
+      "when": 1789110420583,
+      "tag": "0012_people",
+      "breakpoints": true
+    },
+    {
+      "idx": 13,
+      "version": "7",
+      "when": 1789110427590,
+      "tag": "0013_rls_people",
+      "breakpoints": true
     }
   ]
 }

@@ -1,7 +1,7 @@
 import { createGoogleGenerativeAI } from "@ai-sdk/google";
 import { generateText, stepCountIs, tool, type ToolSet } from "ai";
 import { z } from "zod";
-import { recall } from "@helloo/memory";
+import { recall, findPeople } from "@helloo/memory";
 import { gate, type ProposedAction, type RiskLevel } from "@helloo/trust";
 import {
   connectedToolkits,
@@ -109,6 +109,21 @@ export async function converse(
     });
   }
 
+  // People graph: let the agent look up who a name refers to and the surfaces (email/handle/number)
+  // it resolves to — the start of cross-channel identity ("who is Manish, and how do I reach them").
+  tools.helloo_find_person = tool({
+    description:
+      "Look up a person the user knows by name (or by an email/handle) and get the accounts and " +
+      "contact points they resolve to. Use before emailing/messaging someone to find their address.",
+    inputSchema: z.object({
+      name: z.string().describe("A person's name, email, or handle to look up"),
+    }),
+    execute: async ({ name }) => {
+      const people = await findPeople(env, ownerId, name, 5);
+      return { matches: people };
+    },
+  });
+
   const connectedLabels = toolkits.map((t) => TOOLKIT_LABELS[t] ?? t);
   const connectableLabels = connectable.map((t) => TOOLKIT_LABELS[t] ?? t);
 
@@ -121,8 +136,9 @@ export async function converse(
       "GROUNDING: Answer from what you remember about them (below), their connected accounts (via " +
       "tools), and general knowledge. If a personal fact isn't in memory or an account, say you " +
       "don't know it yet — never invent names, numbers, dates, or events.\n\n" +
-      "READS run automatically (fetching email, listing events, reading Slack). Use them before " +
-      "answering questions about the user's accounts rather than guessing. For Slack, resolve a " +
+      "READS run automatically (fetching email, listing events, reading Slack, looking up people). " +
+      "Use them before answering questions about the user's accounts or contacts rather than " +
+      "guessing. To find someone's email/handle, use helloo_find_person. For Slack, resolve a " +
       "channel or person to an id first (find channels / find users), then read history or search.\n\n" +
       "WRITES (send/reply, create/update/delete an event, post to Slack, add a task) are never done " +
       "silently: call the tool and it is queued for the user's approval. Tell them it's waiting for " +

@@ -33,6 +33,16 @@ const CURATED: Record<string, string[]> = {
     "GOOGLETASKS_LIST_TASKS", // read
     "GOOGLETASKS_INSERT_TASK", // write: add a task
   ],
+  googledocs: [
+    "GOOGLEDOCS_SEARCH_DOCUMENTS", // read: find a doc by title/content
+    "GOOGLEDOCS_GET_DOCUMENT_PLAINTEXT", // read: pull a doc's text
+    "GOOGLEDOCS_CREATE_DOCUMENT_MARKDOWN", // write: create a doc from markdown
+  ],
+  googlesheets: [
+    "GOOGLESHEETS_SEARCH_SPREADSHEETS", // read: find a spreadsheet
+    "GOOGLESHEETS_VALUES_GET", // read: read a cell range
+    "GOOGLESHEETS_CREATE_SPREADSHEET_ROW", // write: append a row (CREATE → gated)
+  ],
 };
 
 /** Human-facing labels for the toolkits helloo supports (used in the connect menu). */
@@ -41,6 +51,8 @@ export const TOOLKIT_LABELS: Record<string, string> = {
   googlecalendar: "Google Calendar",
   slack: "Slack",
   googletasks: "Google Tasks",
+  googledocs: "Google Docs",
+  googlesheets: "Google Sheets",
 };
 
 /** The toolkits helloo has curated tools for — the menu of what a user can connect. */
@@ -48,7 +60,7 @@ export const SUPPORTED_TOOLKITS: string[] = Object.keys(CURATED);
 
 /** Tool slugs that write/act externally (vs read). The agent routes these through the gate. */
 export function isWriteTool(slug: string): boolean {
-  return /(SEND|CREATE|UPDATE|DELETE|ADD|POST|REPLY|REMOVE|INSERT|MOVE|PATCH|TRASH|WRITE)/i.test(slug);
+  return /(SEND|CREATE|UPDATE|DELETE|ADD|POST|REPLY|REMOVE|INSERT|MOVE|PATCH|TRASH|WRITE|APPEND|UPSERT|CLEAR)/i.test(slug);
 }
 
 /**
