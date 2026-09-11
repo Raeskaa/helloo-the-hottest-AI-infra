@@ -1,5 +1,8 @@
-import { converse } from "@helloo/agent";
+import { converse, type HistoryMessage } from "@helloo/agent";
 import type { AppEnv } from "@helloo/core";
+
+/** Keep the last few turns as short-term conversational context. */
+const HISTORY_LIMIT = 8;
 
 /**
  * HelloAgent — one durable agent per user (VERSIONS v1 runtime).
@@ -45,7 +48,17 @@ export class HelloAgent {
 
     if (url.pathname.endsWith("/turn")) {
       const message = readMessage(await req.json());
-      return Response.json(await converse(this.env, owner, message));
+      // Short-term memory: the last few turns of THIS conversation live in the DO's storage, so
+      // follow-ups ("reply to that", "the second one") have context. Long-term memory is Postgres.
+      const history = (await this.state.storage.get<HistoryMessage[]>("history")) ?? [];
+      const result = await converse(this.env, owner, message, { history });
+      const updated = [
+        ...history,
+        { role: "user" as const, text: message },
+        { role: "assistant" as const, text: result.reply },
+      ].slice(-HISTORY_LIMIT);
+      await this.state.storage.put("history", updated);
+      return Response.json(result);
     }
 
     return Response.json({ ok: true, owner });

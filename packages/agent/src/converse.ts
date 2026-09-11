@@ -75,6 +75,12 @@ function summarize(slug: string, args: Record<string, unknown>): string {
   return bits.length ? `${slug} (${bits.join(", ")})` : slug;
 }
 
+/** A prior message in the same conversation (short-term context). */
+export interface HistoryMessage {
+  role: "user" | "assistant";
+  text: string;
+}
+
 /** Options for a delegated (sub-agent) run — see helloo_ask_agent. */
 export interface ConverseOptions {
   /** A custom-agent persona appended to the base system prompt. */
@@ -84,6 +90,8 @@ export interface ConverseOptions {
   /** True when running as a delegated sub-agent: skips the spend cap (the outer turn counted it) and
    * the helloo-management tools (connect, reminders, workflows, agents…) to stay task-focused. */
   isSubAgent?: boolean;
+  /** Recent turns in this conversation (oldest first), so follow-ups have context. */
+  history?: HistoryMessage[];
 }
 
 export async function converse(
@@ -457,7 +465,10 @@ export async function converse(
       `Connected accounts: ${connectedLabels.length ? connectedLabels.join(", ") : "none"}.${accountNote}\n` +
       `Can be connected on request: ${connectableLabels.length ? connectableLabels.join(", ") : "none"}.\n` +
       `What you remember about the user:\n${memoryContext}`,
-    prompt: message,
+    messages: [
+      ...(opts.history ?? []).map((h) => ({ role: h.role, content: h.text })),
+      { role: "user" as const, content: message },
+    ],
     tools,
     stopWhen: stepCountIs(5),
   });

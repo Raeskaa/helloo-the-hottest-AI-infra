@@ -3,6 +3,7 @@ export {
   AGENT_MODEL,
   type ConverseResult,
   type ConverseOptions,
+  type HistoryMessage,
   type RecalledFact,
   type PendingApproval,
 } from "./converse";
