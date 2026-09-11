@@ -28,8 +28,9 @@ layer and grounded in owned memory.
 
 ## 1. Architecture at a glance
 
-**Runtime:** Cloudflare Workers (free) + one **Durable Object per user** (`HelloAgent`) + **Neon Postgres**
-(Drizzle) + a **cron** (every 3 min: warms Neon + delivers due reminders). Model: **Gemini via the Vercel
+**Runtime:** Cloudflare Workers (free) — turns run `converse` directly in the Worker (the per-user Durable
+Object was removed as vestigial; short-term chat context lives in `chat_session`) + **Neon Postgres** (Drizzle)
++ a **cron** (every 3 min: warms Neon, delivers due reminders, fires email workflows). Model: **Gemini via the Vercel
 AI SDK** (provider-agnostic). Live at `helloo-api.getyourbumb.workers.dev`.
 
 **Monorepo packages** (`packages/*`) + app (`apps/api`, composition-only):
@@ -45,10 +46,10 @@ AI SDK** (provider-agnostic). Live at `helloo-api.getyourbumb.workers.dev`.
 | `integrations` | Composio connect/exec, curated tools, web search | ✅ (multi-account 🔴) |
 | `channels` | Telegram adapter, linking, onboarding | ✅ (more channels 🔴) |
 | `scheduler` | reminder table access + cron delivery | ✅ |
-| `apps/api` | Hono routes, webhook, DO, cron wiring | ✅ |
+| `apps/api` | Hono routes, webhook, converse wiring, cron | ✅ |
 
 **Data (Neon, migrations 0000–0016):** auth tables · `hello`/`atom`/`audit`/`atom_embedding` (membrane) ·
-`permission_request`/`policy` (trust) · `channel_link`/`composio_identity`/`channel_onboarding` (channels) ·
+`permission_request`/`policy` (trust) · `channel_link`/`composio_identity`/`channel_onboarding`/`chat_session`/`mcp_token`/`connection` (channels) ·
 `person`/`person_identity` (people) · `reminder` (scheduler). All membrane/people/trust/scheduler tables are
 **RLS-isolated** (owner connection bypasses for admin/cron).
 
